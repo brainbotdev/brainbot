@@ -5,11 +5,13 @@ from sys import executable
 from dotenv import load_dotenv
 from pyryver import Ryver
 
-from utils import Topic, bot_dir, console, send_message, TellMeTo
+from utils import TellMeTo, Topic, bot_dir, console, send_message
 
 __version__ = "0.1.1"
 
-load_dotenv(dotenv_path=bot_dir / ".env") # Added path to support older versions of python-dotenv
+load_dotenv(
+    dotenv_path=bot_dir / ".env"
+)  # Added path to support older versions of python-dotenv
 
 topic_engine = Topic()
 tell_me_to_engine = TellMeTo()
@@ -20,7 +22,9 @@ async def main():
     async with Ryver(
         getenv("RYVER_ORG"), getenv("RYVER_USER"), getenv("RYVER_PASS")
     ) as ryver:
-        console.log(f"Connected to {ryver.org} Ryver org as user {getenv('RYVER_USER')}")
+        console.log(
+            f"Connected to {ryver.org} Ryver org as user {getenv('RYVER_USER')}"
+        )
 
         # Save the bot chat to compare with all incoming messages
         await ryver.load_chats()
@@ -29,7 +33,9 @@ async def main():
         bot_chat = ryver.get_chat(id=int(getenv("RYVER_CHAT")))
 
         # Get bot admins for restricted commands
-        bot_admins = [ryver.get_user(username=user) for user in getenv("BOT_ADMIN").split(",")]
+        bot_admins = [
+            ryver.get_user(username=user) for user in getenv("BOT_ADMIN").split(",")
+        ]
 
         async with ryver.get_live_session() as session:
             console.log("In live session")
