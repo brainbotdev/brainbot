@@ -1,4 +1,4 @@
-# BrainBot [![Version 0.1.0](https://img.shields.io/badge/version-0.1.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![GitHub stars](https://img.shields.io/github/stars/bsoyka/brainbot?style=social)][stars]
+# BrainBot [![Version 0.1.1](https://img.shields.io/badge/version-0.1.1-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![GitHub stars](https://img.shields.io/github/stars/bsoyka/brainbot?style=social)][stars]
 **A simple and fun Ryver bot to liven up the conversation**
 
 ## Usage
@@ -25,5 +25,5 @@ $ python main.py
 ```
 
 [license]: https://github.com/bsoyka/brainbot/blob/master/LICENSE
-[release]: https://github.com/bsoyka/brainbot/releases/tag/0.1.0
+[release]: https://github.com/bsoyka/brainbot/releases/tag/v0.1.1
 [stars]: https://github.com/bsoyka/brainbot/stargazers
