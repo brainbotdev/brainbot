@@ -81,7 +81,7 @@ async def main():
                     console.log(f"Telling {user.get_username()} who I am.")
                     await send_message(f"Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by @bsoyka. Ask me for a list of commands if you'd like by saying !commands")
                 elif msg.text.lower().startswith("!commands"):
-                    console.log(f"Telling {user.get_username()} who I am.")
+                    console.log(f"Telling {user.get_username()} my commands.")
                     await send_message(f"!topic, !version, !restart (admin only), !topicbypass (admin only), !commands, WhoisBrainbot")
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
