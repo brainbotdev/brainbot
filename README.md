@@ -1,8 +1,10 @@
 # BrainBot [![Version 0.1.1](https://img.shields.io/badge/version-0.1.1-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![GitHub stars](https://img.shields.io/github/stars/bsoyka/brainbot?style=social)][stars]
+
+**A simple and fun Ryver bot to liven up the conversation**
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-**A simple and fun Ryver bot to liven up the conversation**
 
 ## Usage
 First of all, clone this repo to your local machine.
