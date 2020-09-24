@@ -77,6 +77,12 @@ async def main():
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
                     await send_message(f"BrainBot v{__version__}", bot_chat)
+                elif msg.text.lower().startswith("!WhoisBrainBot?"):
+                    console.log(f"Telling {user.get_username()} who I am.")
+                    await send_message(f"Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by @bsoyka. Ask me for a list of commands if you'd like by saying !commands")
+                elif msg.text.lower().startswith("!commands"):
+                    console.log(f"Telling {user.get_username()} who I am.")
+                    await send_message(f"!topic, !version, !restart (admin only), !topicbypass (admin only), !commands, WhoisBrainbot")
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
