@@ -88,7 +88,7 @@ async def main():
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only)",
+                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only).",
                         bot_chat,
                     )
                 # Restart the bot
