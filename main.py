@@ -94,6 +94,7 @@ async def main():
                     else:
                         console.log(
                             f"[bold red]{user.get_username()} attempted to restart the bot"
+                    
                         )
                 # Shut down the bot
                 elif msg.text.lower().startswith("!shutdown"):
@@ -106,7 +107,9 @@ async def main():
                         )
 
             await session.run_forever()
-
+                    @session.on_connection_loss
+                        async def on_connection_loss():
+                        await session.close()
 
 # Run the async main function that was just defined
 get_event_loop().run_until_complete(main())
