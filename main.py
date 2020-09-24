@@ -80,11 +80,17 @@ async def main():
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
-                    await send_message("Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by the open-source community. Ask me for a list of commands if you'd like by saying `!commands`.", bot_chat)
+                    await send_message(
+                        "Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by the open-source community. Ask me for a list of commands if you'd like by saying `!commands`.",
+                        bot_chat,
+                    )
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
-                    await send_message("Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only)", bot_chat)
+                    await send_message(
+                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only)",
+                        bot_chat,
+                    )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
@@ -104,6 +110,10 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+
+            @session.on_connection_loss
+            async def on_connection_loss():
+                await session.close()
 
             await session.run_forever()
 
