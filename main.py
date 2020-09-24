@@ -7,7 +7,7 @@ from pyryver import Ryver
 
 from utils import TellMeTo, Topic, bot_dir, console, send_message
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
