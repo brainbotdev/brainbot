@@ -21,7 +21,7 @@ creator = Creator(
 # Message sender utility to add a bot notice footer and use the bot's creator
 async def send_message(message, chat):
     await chat.send_message(
-        f"{message}\n\n^I^ ^am^ ^a^ ^bot,^ ^bsoyka^ ^made^ ^me.^", creator=creator,
+        f"{message}\n\n^I^ ^am^ ^a^ ^bot^ ^made^ ^by^ ^the^ ^comunity.^", creator=creator,
     )
 
 
