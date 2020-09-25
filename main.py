@@ -4,6 +4,7 @@ from sys import executable
 
 from dotenv import load_dotenv
 from pyryver import Ryver
+import pyjokes #pip install pyjokes
 
 from utils import TellMeTo, Topic, bot_dir, console, send_message
 
@@ -77,6 +78,10 @@ async def main():
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
                     await send_message(f"BrainBot v{__version__}", bot_chat)
+                # Make the bot tell a joke
+                 elif msg.text.lower().startswith("!version"):
+                    console.log(f"Telling {user.get_username()} a joke")
+                    await send_message(f"pyjokes.get_joke()", bot_chat)
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
