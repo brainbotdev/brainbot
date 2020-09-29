@@ -118,6 +118,18 @@ async def main():
                         "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only).",
                         bot_chat,
                     )
+                 # Karma/Engagement system
+                 karma = 0
+                 elif msg.text.lower().startswith(f"!thanks{user.get_username()}"):
+                    console.log(f"Adding 1 karma from {user.get_username()}")
+                    karma+1
+                    if karma = #pick a number
+                        print("Goal reached :tada:")
+                    
+                    await send_message(
+                        "",
+                        bot_chat,
+                
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
