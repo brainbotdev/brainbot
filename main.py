@@ -4,8 +4,9 @@ from sys import executable
 
 from dotenv import load_dotenv
 from pyryver import Ryver
+from pyryver.util import retry_until_available
 
-from utils import TellMeTo, Topic, bot_dir, console, send_message
+from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
 __version__ = "0.2.2"
 
@@ -13,8 +14,10 @@ load_dotenv(
     dotenv_path=bot_dir / ".env"
 )  # Added path to support older versions of python-dotenv
 
-topic_engine = Topic()
-tell_me_to_engine = TellMeTo()
+tell_me_to_cooldown = Cooldown(300)
+topic_cooldown = Cooldown(120)
+
+topic_engine = TopicGenerator()
 
 # Wrap in async function to use async context manager
 async def main():
@@ -55,7 +58,13 @@ async def main():
                         console.log(
                             f"{user.get_username()} used the !topic command [bold red](COOLDOWN BYPASS)"
                         )
-                        await topic_engine.topic(bot_chat, msg, bypass=True)
+
+                        topic_cooldown.run(bypass=True)
+
+                        await send_message(
+                            f"++**Conversation starter:**++\n{topic_engine.topic()}",
+                            bot_chat,
+                        )
 
                     else:
                         console.log(
@@ -64,12 +73,30 @@ async def main():
                 # Get a conversation starter
                 elif msg.text.lower().startswith("!topic"):
                     console.log(f"{user.get_username()} used the !topic command")
-                    await topic_engine.topic(bot_chat, msg)
+
+                    if topic_cooldown.run():
+                        await send_message(
+                            f"++**Conversation starter:**++\n{topic_engine.topic()}",
+                            bot_chat,
+                        )
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
                 # "Someone tell me to" autoresponse
                 elif msg.text.lower().startswith("someone tell me to "):
                     to_do = msg.text[19:]
                     console.log(f"Telling {user.get_username()} to {to_do}")
-                    if tell_me_to_engine.can_use():
+                    if tell_me_to_cooldown.run():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")

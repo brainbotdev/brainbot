@@ -21,12 +21,27 @@ creator = Creator(
 # Message sender utility to add a bot notice footer and use the bot's creator
 async def send_message(message, chat):
     await chat.send_message(
-        f"{message}\n\n^I^ ^am^ ^a^ ^bot^ ^made^ ^by^ ^the^ ^community.^", creator=creator,
+        f"{message}\n\n^I^ ^am^ ^a^ ^bot^ ^made^ ^by^ ^the^ ^community.^",
+        creator=creator,
     )
 
 
+# Cooldown utility
+class Cooldown:
+    def __init__(self, seconds: int):
+        self.cooldown = seconds
+        self.last_used = 0
+
+    def run(self, bypass=False):
+        if time() - self.last_used >= self.cooldown or bypass:
+            self.last_used = time()
+            return True
+        else:
+            return False
+
+
 # The main topic engine
-class Topic:
+class TopicGenerator:
     # Method to shuffle and reset the topics list
     def shuffle_topics(self):
         self.topics = sample(self.original_topics, len(self.original_topics))
@@ -39,44 +54,10 @@ class Topic:
         # Shuffle as defined previously
         self.shuffle_topics()
 
-        # Set the time to 0 (the Epoch)
-        self.last_used = 0
+    def topic(self):
+        # If out of topics, re-shuffle
+        if len(self.topics) == 0:
+            self.shuffle_topics()
 
-    async def topic(self, chat, msg, bypass=False):
-        # Check if the last time the command was used was over 2 mins ago
-        # or bypass is enabled
-        if time() - self.last_used >= 120 or bypass:
-            # If out of topics, re-shuffle
-            if len(self.topics) == 0:
-                self.shuffle_topics()
-
-            # Get a random topic while also removing it from the queue
-            random_topic = self.topics.pop()
-
-            # Send the convo starter
-            await send_message(f"++**Conversation starter:**++\n{random_topic}", chat)
-
-            # Set the last used time to now
-            self.last_used = time()
-        else:
-            console.log("Cancelled due to cooldown")
-
-            # Get the invoking message
-            message = await retry_until_available(
-                chat.get_message, msg.message_id, timeout=5.0, retry_delay=0.5
-            )
-
-            # React to show the command is on cooldown
-            await message.react("timer_clock")
-
-
-class TellMeTo:
-    def __init__(self):
-        self.last_used = 0
-
-    def can_use(self):
-        if time() - self.last_used >= 300:
-            self.last_used = time()
-            return True
-        else:
-            return False
+        # Get a random topic while also removing it from the queue
+        return self.topics.pop()
