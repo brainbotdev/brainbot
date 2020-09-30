@@ -111,6 +111,28 @@ async def main():
                         "Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by the open-source community. Ask me for a list of commands if you'd like by saying `!commands`.",
                         bot_chat,
                     )
+                #Vote 
+                elif msg.text.lower().startswith("!vote"):
+                    console.log(f"Starting a poll for {user.get_username()}")
+                    optiona = await send_message(input("{user.get_username()}, please say option a")) 
+                    optionb = await send_message(input("{user.get_username()}, please say option b")) 
+                    verb = await send_message(input("What verb will this poll be using? Ex.) What movie will we +watch? Where will we +go+?"))
+                    await send_message(f"Vote master {user.get_username()}, when you'd like to start please say [[!start]]. Do not send any messages until the round has started.")
+                    if msg.text.lower().startswith("!start"):
+                        await send_message("Would you rather"+verb+optiona+"or"+optionb?)
+                            if msg.text.lower().startswith(optiona):
+                                acount = 0
+                                acount = acount + 1
+                            if msg.text.lower().startswith(optionb):
+                                bcount = 0
+                                bcount = acount + 1
+                            await asyncio.sleep(10)
+                            if optiona > optionb 
+                                print(optiona+"wins")
+                            if optiona < optionb 
+                                print(optionb+"wins")
+                            
+                elif 
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
