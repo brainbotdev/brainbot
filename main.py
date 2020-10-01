@@ -111,11 +111,18 @@ async def main():
                         "Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by the open-source community. Ask me for a list of commands if you'd like by saying `!commands`.",
                         bot_chat,
                     )
+                # Give a list of admins
+                elif msg.text.lower().startswith("!admins"):
+                    console.log(f"Telling {user.get_username()} who I am")
+                    await send_message(
+                        bot_admins,
+                        bot_chat,
+                    )
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only).",
+                        "Here are my commands: !topic, !version, !commands, !intro, !admins, !restart (admin only), !topic bypass (admin only).",
                         bot_chat,
                     )
                 # Restart the bot
