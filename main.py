@@ -8,7 +8,7 @@ from pyryver.util import retry_until_available
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
-__version__ = "0.2.2"
+__version__ = "0.2.3"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
