@@ -113,7 +113,7 @@ async def main():
                     )
                 # Give a list of admins
                 elif msg.text.lower().startswith("!admins"):
-                    console.log(f"Telling {user.get_username()} who I am")
+                    console.log(f"Telling {user.get_username()} the admins")
                     await send_message(
                         bot_admins,
                         bot_chat,
