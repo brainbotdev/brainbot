@@ -19,6 +19,9 @@ topic_cooldown = Cooldown(120)
 
 topic_engine = TopicGenerator()
 
+controller = input("Hi there, who is this? ")
+print("Hello" + controller + ",I hope you enjoy my company in your Ryver organization!")
+
 # Wrap in async function to use async context manager
 async def main():
     # Log into Ryver with regular username/password
@@ -104,6 +107,13 @@ async def main():
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
                     await send_message(f"BrainBot v{__version__}", bot_chat)
+                # Who is running the bot
+                elif msg.text.lower().startswith("!host"):
+                    console.log(f"Telling {user.get_username()} who the host is")
+                    await send_message(
+                        controller + " is hosting me."
+                        bot_chat,
+                    )
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
@@ -115,7 +125,7 @@ async def main():
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only).",
+                        "Here are my commands: !topic, !version, !commands, !intro, !host, !restart (admin only), !topic bypass (admin only).",
                         bot_chat,
                     )
                 # Restart the bot
