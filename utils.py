@@ -15,7 +15,7 @@ bot_dir = Path(__file__).parent.absolute()
 # Creator to show the bot as... a bot
 creator = Creator(
     name="BrainBot | Happy Halloween!",
-    avatar="https://2.bp.blogspot.com/-uuIs6AxrKuQ/UvqYIdg8qTI/AAAAAAAAAMA/6UeTGIuxeWo/s1600/Fotolia_52196024_XS.jpg",
+    avatar="https://i.imgur.com/LyRyO7V.png",
 )
 
 # Message sender utility to add a bot notice footer and use the bot's creator
