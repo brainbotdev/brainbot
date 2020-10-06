@@ -105,7 +105,7 @@ async def main():
                         console.log("Cancelled due to cooldown")
                 
                 elif msg.text.lower().startswith("!repeat"):
-                    msg_text = msg.text[19:]
+                    msg_text = msg.text[8:]
                     console.log(f"Repeating {user.get_username()}")
                     if tell_me_to_cooldown.run():
                         await send_message(f"{msg_text}", bot_chat)
