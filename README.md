@@ -27,9 +27,12 @@ Finally, run the bot with this simple command:
 $ python main.py
 ```
 
+**Take a look at [the BrainBot wiki][wiki] to learn how to use the bot once it's up and running.**
+
 [license]: https://github.com/bsoyka/brainbot/blob/master/LICENSE
 [release]: https://github.com/bsoyka/brainbot/releases/tag/v0.3.0
 [stars]: https://github.com/bsoyka/brainbot/stargazers
+[wiki]: https://github.com/bsoyka/brainbot/wiki
 
 ## Contributors ✨
 

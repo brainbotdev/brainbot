@@ -160,7 +160,7 @@ async def main():
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !evaluate, !restart (admin only), !topic bypass (admin only).",
+                        "Check out [my wiki](https://github.com/bsoyka/brainbot/wiki) to learn what commands I understand.",
                         bot_chat,
                     )
                 # Restart the bot
