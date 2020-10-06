@@ -9,7 +9,7 @@ from pyryver.util import retry_until_available
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
@@ -160,7 +160,7 @@ async def main():
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !evaluate, !restart (admin only), !topic bypass (admin only).",
+                        "Check out [my wiki](https://github.com/bsoyka/brainbot/wiki) to learn what commands I understand.",
                         bot_chat,
                     )
                 # Restart the bot
