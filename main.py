@@ -9,7 +9,7 @@ from pyryver.util import retry_until_available
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
-__version__ = "0.3.1"
+__version__ = "0.4.0"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
@@ -101,6 +101,18 @@ async def main():
                     console.log(f"Telling {user.get_username()} to {to_do}")
                     if tell_me_to_cooldown.run():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+                # Repeat after the user
+                elif msg.text.lower().startswith("!repeat"):
+                    msg_text = msg.text[8:]
+                    console.log(f"Repeating {user.get_username()}")
+                    if tell_me_to_cooldown.run():
+                        await send_message(
+                            f"{msg_text}",
+                            bot_chat,
+                            footer_end=f"This command was run by {user.get_username()}.",
+                        )
                     else:
                         console.log("Cancelled due to cooldown")
                 # Give the current version
