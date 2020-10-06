@@ -103,16 +103,19 @@ async def main():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")
-                
+
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
                     console.log(f"Repeating {user.get_username()}")
                     if tell_me_to_cooldown.run():
-                        await send_message(f"{msg_text}", bot_chat)
-                        await send_message("^This^ ^command^ ^was^ ^run^ ^by^"+^{user.get_username()}^)
+                        await send_message(
+                            f"{msg_text}",
+                            bot_chat,
+                            footer_end=f"This command was run by {user.get_username()}.",
+                        )
                     else:
                         console.log("Cancelled due to cooldown")
-                    
+
                 # Give the current version
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
