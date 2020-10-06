@@ -3,6 +3,7 @@ from os import getenv, system
 from sys import executable
 
 from dotenv import load_dotenv
+from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
 
@@ -18,6 +19,8 @@ tell_me_to_cooldown = Cooldown(300)
 topic_cooldown = Cooldown(120)
 
 topic_engine = TopicGenerator()
+
+math_parser = Parser()
 
 # Wrap in async function to use async context manager
 async def main():
@@ -111,11 +114,53 @@ async def main():
                         "Hi! I'm BrainBot. I'm a fun, engagement-increasing bot made by the open-source community. Ask me for a list of commands if you'd like by saying `!commands`.",
                         bot_chat,
                     )
+                # Evaluate a math expression
+                elif msg.text.lower().startswith("!evaluate"):
+                    inputs = [value.strip() for value in msg.text[10:].split(";")]
+                    console.log(
+                        f"Evaluating {'; '.join(inputs)} for {user.get_username()}"
+                    )
+                    try:
+                        expression = math_parser.parse(inputs[0])
+                    except:
+                        console.log("[red]An error occurred during parsing")
+                        await send_message(
+                            "An error occurred while trying to parse your input.",
+                            bot_chat,
+                        )
+                        return
+
+                    variables = expression.variables()
+                    if len(inputs) - 1 != len(variables):
+                        console.log("[red]Incorrect number of variables provided")
+                        await send_message(
+                            f"You have not provided the correct number of variables. (Expected {len(variables)})",
+                            bot_chat,
+                        )
+                        return
+
+                    values = dict(
+                        zip(variables, [float(value) for value in inputs[1:]])
+                    )
+
+                    try:
+                        result = expression.evaluate(values)
+                    except:
+                        console.log("[red]An error occurred during evaluation")
+                        await send_message(
+                            "An error occurred while trying to evaluate your input.",
+                            bot_chat,
+                        )
+                        return
+
+                    await send_message(
+                        f"++**Evaluation result:**++\n{result}", bot_chat
+                    )
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
                     await send_message(
-                        "Here are my commands: !topic, !version, !commands, !intro, !restart (admin only), !topic bypass (admin only).",
+                        "Here are my commands: !topic, !version, !commands, !intro, !evaluate, !restart (admin only), !topic bypass (admin only).",
                         bot_chat,
                     )
                 # Restart the bot

@@ -1,3 +1,4 @@
+py-expression-eval>=0.3.10
 pyryver~=0.3.1
 python-dotenv>=0.0.1
 rich>=6.0.0
