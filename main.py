@@ -122,18 +122,19 @@ async def main():
                     await send_message(f"BrainBot v{__version__}", bot_chat)
                 # Translate a given word or phrase
                 elif msg.text.lower().startswith("!translate"):
-                    forum_or_team = ryver.get_groupchat(name="FORUM_OR_TEAM")
+                    console.log(f"Translating for {user.get_username()}")
                     language = msg.text[11:13]
                     word = msg.text[14:]
-                     
-                    if type(word) == str:
-                        translator= Translator(to_lang=language)
-                        translation = translator.translate(word)
-                        await forum_or_team.send_message(translation "^This^ ^command^ ^was^ ^run^ ^by^ ^{user.get_username()}^", creator)
-                    
-                    else:
-                        await forum_or_team.send_message("Sorry, something's not right...", creator)
-                        
+
+                    translator = Translator(to_lang=language)
+                    translation = translator.translate(word)
+
+                    await send_message(
+                        f"++**Translation result:**++:\n{translation}",
+                        creator,
+                        footer_end=f"This command was run by {user.get_username()}.",
+                    )
+
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
