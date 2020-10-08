@@ -2,3 +2,4 @@ py-expression-eval==0.3.10
 pyryver==0.3.2.post1
 python-dotenv==0.14.0
 rich==8.0.0
+translate==3.5.0

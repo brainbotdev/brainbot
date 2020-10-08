@@ -1,6 +1,7 @@
 from asyncio import get_event_loop
 from os import getenv, system
 from sys import executable
+from translate import Translator
 
 from dotenv import load_dotenv
 from py_expression_eval import Parser
@@ -15,8 +16,8 @@ load_dotenv(
     dotenv_path=bot_dir / ".env"
 )  # Added path to support older versions of python-dotenv
 
-tell_me_to_cooldown = Cooldown(300)
-topic_cooldown = Cooldown(120)
+tell_me_to_cooldown = Cooldown(200)
+topic_cooldown = Cooldown(100)
 
 topic_engine = TopicGenerator()
 
@@ -119,6 +120,21 @@ async def main():
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
                     await send_message(f"BrainBot v{__version__}", bot_chat)
+                # Translate a given word or phrase
+                elif msg.text.lower().startswith("!translate"):
+                    console.log(f"Translating for {user.get_username()}")
+                    language = msg.text[11:13]
+                    word = msg.text[14:]
+
+                    translator = Translator(to_lang=language)
+                    translation = translator.translate(word)
+
+                    await send_message(
+                        f"++**Translation result:**++:\n{translation}",
+                        bot_chat,
+                        footer_end=f"This command was run by {user.get_username()}.",
+                    )
+
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
