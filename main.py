@@ -48,7 +48,7 @@ async def main():
             console.log("In live session")
 
             @session.on_chat
-            async def on_chat(msg):
+            async def _on_chat(msg):
                 # Stop if message wasn't sent to the bot chat
                 if msg.to_jid != bot_chat.get_jid():
                     return
@@ -212,7 +212,7 @@ async def main():
                         )
 
             @session.on_connection_loss
-            async def on_connection_loss():
+            async def _on_connection_loss():
                 await session.close()
 
             await session.run_forever()
