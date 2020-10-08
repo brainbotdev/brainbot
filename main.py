@@ -234,7 +234,7 @@ async def main():
                   
                 valid=True
                 
-                elifif msg.text.lower().startswith ("!phon"): # Checks if it contains special characters
+                elif msg.text.lower().startswith ("!phon"): # Checks if it contains special characters
                     for i in msg.text.lower().lstrip("!phon"): 
                         chat = ryver.get_chat(jid=msg.to_jid)
                         
@@ -248,7 +248,7 @@ async def main():
                     await chat.send_message("Please enter a value ", creator)
                     valid=False
                     pass
-                elifif msg.text.lower().startswith ("!phon") and valid==True:
+                elif msg.text.lower().startswith ("!phon") and valid==True:
                     valid=True
                     chat = ryver.get_chat(jid=msg.to_jid)
 
