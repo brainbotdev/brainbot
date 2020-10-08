@@ -1,16 +1,44 @@
 # Contributing
 
-When contributing to this repository, please first discuss the change you wish
-to make via an issue.
+Thanks for taking the time to contribute! Here are a few guidelines to follow:
 
-Please note we have a code of conduct, please follow it in all your
-interactions with the project.
+* First things first, please **follow our [code of conduct](#code-of-conduct)**
+  in all your interactions with this project.
+* All contributions should **start with a GitHub issue** to avoid unneccessary
+  contributions.
+* If you'd like to work on an issue, **please comment** on it. A maintainer
+  will then remove any "help wanted" tags and assign the issue to you to make
+  sure no duplicate pull requests are made.
+* After making updates to the code, **please format it** using `black` and
+  `isort` (see [Development Dependencies](#development-dependencies)) before
+  pushing
+* Making a pull request will automatically request a review from the BrainBot
+  reviewers team, and that will automatically assign someone specifically to
+  review your work.
+* Once at least one review/collaborator has approved your pull request, it'll
+  be merged in! Your name, website, and profile picture will be displayed on
+  the `README.md` file **in recognition of your contribution**.
 
-## Pull Request Process
+## Development Dependencies
 
-You may merge the pull request in once you have the approval of one other
-developer, or if you do not have permission to do that, you may request that a
-reviewer merge it for you.
+To help out on this project, it's recommended and helpful that you install and
+use the following tools:
+
+* [`black`](https://black.readthedocs.io/en/stable/)
+* [`isort`](https://pycqa.github.io/isort/)
+* [`bump2version`](https://pypi.org/project/bump2version/) (optional, mainly
+  for maintainers)
+
+To install all of these tools at once, just use the `dev-requirements.txt`
+file:
+
+```sh
+$ pip install -r dev-requirements.txt
+```
+
+If possible, it's also recommended that you install the
+[EditorConfig](https://editorconfig.org/) plugin/extension for your code
+editor.
 
 # Code of Conduct
 
