@@ -1,16 +1,16 @@
 from asyncio import get_event_loop
+from configparser import ConfigParser
 from os import getenv, system
 from sys import executable
 
 from dotenv import load_dotenv
 from git import Repo
+from googletrans import Translator
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
-from translate import Translator
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
-from configparser import ConfigParser
 
 __version__ = "1.0.0"
 
@@ -24,9 +24,9 @@ config.read("brainbot.ini")
 tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback=200))
 topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 
-topic_engine = TopicGenerator()
-
 math_parser = Parser()
+topic_engine = TopicGenerator()
+translator = Translator()
 
 # Wrap in async function to use async context manager
 async def main():
@@ -131,15 +131,10 @@ async def main():
                     language = msg.text[11:13]
                     word = msg.text[14:]
 
-                    if language == "en":
-                        await send_message("English is currently not supported", bot_chat)
-                        return
-
-                    translator = Translator(to_lang=language)
-                    translation = translator.translate(word)
+                    translation = translator.translate(word, dest=language)
 
                     await send_message(
-                        f"++**Translation result:**++:\n{translation}",
+                        f"++**Translation result:**++:\n{translation.text}",
                         bot_chat,
                         footer_end=f"This command was run by {user.get_username()}.",
                     )
