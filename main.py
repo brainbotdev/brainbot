@@ -113,7 +113,7 @@ async def main():
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
                     console.log(f"Repeating {user.get_username()}")
-                    if tell_me_to_cooldown.run():
+                    if tell_me_to_cooldown.run(username=user.get_username()):
                         await send_message(
                             f"{msg_text}",
                             bot_chat,
