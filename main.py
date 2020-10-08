@@ -131,6 +131,10 @@ async def main():
                     language = msg.text[11:13]
                     word = msg.text[14:]
 
+                    if language = "en":
+                        await send_message("English is currently not supported")
+                        return
+
                     translator = Translator(to_lang=language)
                     translation = translator.translate(word)
 
@@ -139,7 +143,6 @@ async def main():
                         bot_chat,
                         footer_end=f"This command was run by {user.get_username()}.",
                     )
-
                 # Give an introduction of the bot
                 elif msg.text.lower().startswith("!intro"):
                     console.log(f"Telling {user.get_username()} who I am")
