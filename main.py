@@ -131,7 +131,7 @@ async def main():
 
                     await send_message(
                         f"++**Translation result:**++:\n{translation}",
-                        creator,
+                        bot_chat,
                         footer_end=f"This command was run by {user.get_username()}.",
                     )
 
