@@ -133,7 +133,9 @@ async def main():
 
                     translator = Translator(to_lang=language)
                     translation = translator.translate(word)
-
+                if language = "en"
+                await send_message("English is currently not supported")
+                else:   
                     await send_message(
                         f"++**Translation result:**++:\n{translation}",
                         bot_chat,
