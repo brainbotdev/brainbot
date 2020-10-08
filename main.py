@@ -105,7 +105,7 @@ async def main():
                 elif msg.text.lower().startswith("someone tell me to "):
                     to_do = msg.text[19:]
                     console.log(f"Telling {user.get_username()} to {to_do}")
-                    if tell_me_to_cooldown.run():
+                    if tell_me_to_cooldown.run(username=user.get_username()):
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")

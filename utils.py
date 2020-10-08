@@ -33,11 +33,13 @@ async def send_message(message, chat, footer_end=""):
 class Cooldown:
     def __init__(self, seconds: int):
         self.cooldown = seconds
-        self.last_used = 0
+        self.last_used = {}
 
-    def run(self, bypass=False):
-        if time() - self.last_used >= self.cooldown or bypass:
-            self.last_used = time()
+    def run(self, username=None, bypass=False):
+        if username not in self.last_used:
+            self.last_used[username] = 0
+        if time() - self.last_used[username] >= self.cooldown or bypass:
+            self.last_used[username] = time()
             return True
         else:
             return False
