@@ -1,3 +1,8 @@
+import phonetic_alphabet as alpha
+import pyryver
+import asyncio
+from pyryver.objects import Creator
+import string
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from os import getenv, system
@@ -226,7 +231,30 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+                  
+                valid=True
+                
+                elifif msg.text.lower().startswith ("!phon"): # Checks if it contains special characters
+                    for i in msg.text.lower().lstrip("!phon"): 
+                        chat = ryver.get_chat(jid=msg.to_jid)
+                        
+                        if i in string.punctuation:
+                                
+                            await chat.send_message("Please do not include Special Characters ", creator)
+                            valid=False
+                            break
+                elif msg.text.lower()==("!phon"):# Checks if a word/scentence has been entered
+                    chat = ryver.get_chat(jid=msg.to_jid)
+                    await chat.send_message("Please enter a value ", creator)
+                    valid=False
+                    pass
+                elifif msg.text.lower().startswith ("!phon") and valid==True:
+                    valid=True
+                    chat = ryver.get_chat(jid=msg.to_jid)
 
+                    await chat.send_message(alpha.read(msg.text.lower().lstrip("!phon")),creator)
+                       
+        
             @session.on_connection_loss
             async def _on_connection_loss():
                 await session.close()
