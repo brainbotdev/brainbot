@@ -54,5 +54,5 @@
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
-  "badgeTemplate": "# BrainBot [![Version 0.4.1](https://img.shields.io/badge/version-0.4.1-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]"
+  "badgeTemplate": "# BrainBot [![Version 0.5.0](https://img.shields.io/badge/version-0.5.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-<%= contributors.length %>-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]"
 }
