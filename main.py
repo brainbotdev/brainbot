@@ -12,7 +12,7 @@ from translate import Translator
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 from configparser import ConfigParser
 
-__version__ = "0.6.0"
+__version__ = "0.7.0"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
