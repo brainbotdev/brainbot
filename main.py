@@ -10,6 +10,7 @@ from pyryver.util import retry_until_available
 from translate import Translator
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
+from configparser import ConfigParser
 
 __version__ = "0.6.0"
 
@@ -17,8 +18,11 @@ load_dotenv(
     dotenv_path=bot_dir / ".env"
 )  # Added path to support older versions of python-dotenv
 
-tell_me_to_cooldown = Cooldown(200)
-topic_cooldown = Cooldown(100)
+config = ConfigParser()
+config.read("brainbot.ini")
+
+tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback=200))
+topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 
 topic_engine = TopicGenerator()
 
