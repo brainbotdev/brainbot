@@ -46,11 +46,20 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "yohanesgultom",
+      "name": "Yohanes Gultom",
+      "avatar_url": "https://avatars3.githubusercontent.com/u/1680876?v=4",
+      "profile": "https://yohanes.gultom.id",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
   "projectName": "brainbot",
-  "projectOwner": "bsoyka",
+  "projectOwner": "brainbotdev",
   "repoType": "github",
   "repoHost": "https://github.com",
   "skipCi": true,
