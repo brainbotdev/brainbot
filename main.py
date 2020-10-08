@@ -1,12 +1,13 @@
 from asyncio import get_event_loop
 from os import getenv, system
 from sys import executable
-from translate import Translator
 
 from dotenv import load_dotenv
+from git import Repo
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
+from translate import Translator
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -191,6 +192,19 @@ async def main():
                         "Check out [my wiki](https://github.com/brainbotdev/brainbot/wiki) to learn what commands I understand.",
                         bot_chat,
                     )
+                # Pull the latest changes from GitHub
+                elif msg.text.lower().startswith("!pull"):
+                    if user in bot_admins:
+                        try:
+                            Repo(bot_dir).remotes.origin.pull()
+                        except:
+                            await send_message("Something went wrong.", bot_chat)
+                            return
+                        await send_message("Pulled successfully", bot_chat)
+                    else:
+                        console.log(
+                            f"[bold red]{user.get_username()} attempted to restart the bot"
+                        )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
