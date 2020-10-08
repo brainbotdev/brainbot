@@ -21,7 +21,7 @@ load_dotenv(
 config = ConfigParser()
 config.read("brainbot.ini")
 
-tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_tos", fallback=200))
+tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback=200))
 topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 
 topic_engine = TopicGenerator()
