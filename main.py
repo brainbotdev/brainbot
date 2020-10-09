@@ -1,7 +1,4 @@
 import phonetic_alphabet as alpha
-import pyryver
-import asyncio
-from pyryver.objects import Creator
 import string
 from asyncio import get_event_loop
 from configparser import ConfigParser
