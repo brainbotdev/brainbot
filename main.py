@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from git import Repo
 from googletrans import Translator
 from phonetic_alphabet import read as phonetics
+from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
@@ -237,15 +238,13 @@ async def main():
                         )
                         return
 
-                    # Check for special characters
-                    for i in msg.text[6:]:
-                        if i in punctuation:
-                            await send_message(
-                                "Please do not include special characters", bot_chat
-                            )
-                            return
+                    try:
+                        result = phonetics(msg.text.lower()[6:])
+                    except:
+                        await send_message("Your text contained one or more unsupported characters", bot_chat)
+                        return
 
-                    await send_message(phonetics(msg.text.lower()[6:]), bot_chat)
+                    await send_message(result, bot_chat)
 
             @session.on_connection_loss
             async def _on_connection_loss():
