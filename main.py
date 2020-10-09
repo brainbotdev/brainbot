@@ -218,6 +218,53 @@ async def main():
                         "Check out [my wiki](https://github.com/brainbotdev/brainbot/wiki) to learn what commands I understand.",
                         bot_chat,
                     )
+                # Start a timer
+                valid=True
+                if msg.text.lower().startswith ("!timer"): # Checks if it contains special characters
+                    for i in msg.text.lower().lstrip("!timer"): 
+                        
+                        
+                        if i in string.punctuation:
+                            forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")    
+                            await forum_or_team.send_message("Please do not include special characters.", creator)
+                            valid=False
+                            break
+
+                if msg.text.lower()==("!timer"):
+                    forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")
+                    await forum_or_team.send_message("Please enter a value.", creator)
+                    
+                   
+                elif msg.text.lower().startswith("!timer") and valid is not False:
+                    
+                    forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")
+                    
+                    seconds = msg.text[7:]
+                    
+                
+                    if seconds.isalpha()==True:
+                        await forum_or_team.send_message("Please do not include letters.", creator)
+                        valid=False
+
+               
+
+                        
+                    else:
+                        x = str(seconds)
+                        await forum_or_team.send_message("Starting timer for "+x+" seconds.", creator)
+                        x = int(seconds)
+                        time.sleep(x)
+                        await forum_or_team.send_message("Timer is done! :tada:", creator)          
+                    
+                ()
+
+                if msg.text.lower().startswith("!convert"):
+                    minutes = msg.text[9:]
+                    seconds = int(minutes) * 60
+                    forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")
+                    x = str(seconds)
+                    await forum_or_team.send_message(minutes+" minutes is "+x+" seconds.", creator)          
+               
                 # Pull the latest changes from GitHub
                 elif msg.text.lower().startswith("!pull"):
                     if user in bot_admins:
