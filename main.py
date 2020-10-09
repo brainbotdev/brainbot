@@ -190,6 +190,22 @@ async def main():
                     await send_message(
                         f"++**Evaluation result:**++\n{result}", bot_chat
                     )
+                # Give phonetic spellings
+                elif msg.text.lower().startswith("!phon"):
+                    # Check length to ensure a value is there
+                    if len(msg.text) <= 6:
+                        await send_message(
+                            "Please enter a word or phrase to be converted", bot_chat
+                        )
+                        return
+
+                    try:
+                        result = phonetics(msg.text.lower()[6:])
+                    except:
+                        await send_message("Your text contained one or more unsupported characters", bot_chat)
+                        return
+
+                    await send_message(result, bot_chat)
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
@@ -229,22 +245,6 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
-                # Give phonetic spellings
-                elif msg.text.lower().startswith("!phon"):
-                    # Check length to ensure a value is there
-                    if len(msg.text) <= 6:
-                        await send_message(
-                            "Please enter a word or phrase to be converted", bot_chat
-                        )
-                        return
-
-                    try:
-                        result = phonetics(msg.text.lower()[6:])
-                    except:
-                        await send_message("Your text contained one or more unsupported characters", bot_chat)
-                        return
-
-                    await send_message(result, bot_chat)
 
             @session.on_connection_loss
             async def _on_connection_loss():
