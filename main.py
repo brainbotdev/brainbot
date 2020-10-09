@@ -202,10 +202,15 @@ async def main():
                     try:
                         result = phonetics(msg.text.lower()[6:])
                     except:
-                        await send_message("Your text contained one or more unsupported characters", bot_chat)
+                        await send_message(
+                            "Your text contained one or more unsupported characters",
+                            bot_chat,
+                        )
                         return
 
-                    await send_message(result, bot_chat)
+                    await send_message(
+                        f"++**Phonetic characters:**++\n{result}", bot_chat
+                    )
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
