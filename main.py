@@ -193,8 +193,9 @@ async def main():
                 # Give phonetic spellings
                 elif msg.text.lower().startswith("!phon"):
                     # Check length to ensure a value is there
-                    if len(msg.text) <= 6:
-                        await send_message(
+                    if tell_me_to_cooldown.run(username=user.get_username()):
+                        if len(msg.text) <= 6:
+                            await send_message(
                             "Please enter a word or phrase to be converted", bot_chat
                         )
                         return
@@ -211,6 +212,14 @@ async def main():
                     await send_message(
                         f"++**Phonetic characters:**++\n{result}", bot_chat
                     )
+                        await send_message(
+                            f"{msg_text}",
+                            bot_chat,
+                            footer_end=f"This command was run by {user.get_username()}.",
+                        )
+                    else:
+                        console.log("Cancelled due to cooldown")    
+                    
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
