@@ -137,7 +137,7 @@ async def main():
                     translation = translator.translate(word, dest=language)
 
                     await send_message(
-                        f"++**Translation result:**++:\n{translation.text}",
+                        f"++**Translation result:**++\n{translation.text}",
                         bot_chat,
                         footer_end=f"This command was run by {user.get_username()}.",
                     )
