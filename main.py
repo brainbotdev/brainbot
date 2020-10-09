@@ -228,30 +228,25 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
-                  
-                valid=True
-                
-                elif msg.text.lower().startswith ("!phon"): # Checks if it contains special characters
-                    for i in msg.text.lower().lstrip("!phon"): 
-                        chat = ryver.get_chat(jid=msg.to_jid)
-                        
-                        if i in string.punctuation:
-                                
-                            await chat.send_message("Please do not include Special Characters ", creator)
-                            valid=False
-                            break
-                elif msg.text.lower()==("!phon"):# Checks if a word/scentence has been entered
-                    chat = ryver.get_chat(jid=msg.to_jid)
-                    await chat.send_message("Please enter a value ", creator)
-                    valid=False
-                    pass
-                elif msg.text.lower().startswith ("!phon") and valid==True:
-                    valid=True
-                    chat = ryver.get_chat(jid=msg.to_jid)
+                # Give phonetic spellings
+                elif msg.text.lower().startswith("!phon"):
+                    # Check length to ensure a value is there
+                    if len(msg.text) <= 6:
+                        await send_message(
+                            "Please enter a word or phrase to be converted", bot_chat
+                        )
+                        return
 
-                    await chat.send_message(alpha.read(msg.text.lower().lstrip("!phon")),creator)
-                       
-        
+                    # Check for special characters
+                    for i in msg.text[6:]:
+                        if i in string.punctuation:
+                            await send_message(
+                                "Please do not include special characters", bot_chat
+                            )
+                            return
+
+                    await send_message(alpha.read(msg.text.lower()[6:]), bot_chat)
+
             @session.on_connection_loss
             async def _on_connection_loss():
                 await session.close()
