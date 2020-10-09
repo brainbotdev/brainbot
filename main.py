@@ -225,19 +225,19 @@ async def main():
                         
                         
                         if i in string.punctuation:
-                            forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")    
+                            forum_or_team = ryver.get_groupchat(name="FORUM_OR_TEAM")    
                             await forum_or_team.send_message("Please do not include special characters.", creator)
                             valid=False
                             break
 
                 if msg.text.lower()==("!timer"):
-                    forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")
+                    forum_or_team = ryver.get_groupchat(name="FORUM_OR_TEAM")
                     await forum_or_team.send_message("Please enter a value.", creator)
                     
                    
                 elif msg.text.lower().startswith("!timer") and valid is not False:
                     
-                    forum_or_team = ryver.get_groupchat(name="Timer/Vote Testing")
+                    forum_or_team = ryver.get_groupchat(name="FORUM_OR_TEAM")
                     
                     seconds = msg.text[7:]
                     
@@ -254,7 +254,10 @@ async def main():
                         await forum_or_team.send_message("Starting timer for "+x+" seconds.", creator)
                         x = int(seconds)
                         time.sleep(x)
-                        await forum_or_team.send_message("Timer is done! :tada:", creator)          
+                        await forum_or_team.send_message("Timer is done "+{user.get_username()}+"!", creator)
+                        x = str(seconds)
+                        console.log("Finished timer for "+x+" seconds. Run by "+{user.get_username()})
+                            
                     
                 ()
 
