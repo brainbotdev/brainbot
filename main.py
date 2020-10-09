@@ -1,11 +1,14 @@
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from os import getenv, system
+from string import punctuation
 from sys import executable
 
 from dotenv import load_dotenv
 from git import Repo
 from googletrans import Translator
+from phonetic_alphabet import read as phonetics
+from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
@@ -186,6 +189,27 @@ async def main():
 
                     await send_message(
                         f"++**Evaluation result:**++\n{result}", bot_chat
+                    )
+                # Give phonetic spellings
+                elif msg.text.lower().startswith("!phon"):
+                    # Check length to ensure a value is there
+                    if len(msg.text) <= 6:
+                        await send_message(
+                            "Please enter a word or phrase to be converted", bot_chat
+                        )
+                        return
+
+                    try:
+                        result = phonetics(msg.text.lower()[6:])
+                    except:
+                        await send_message(
+                            "Your text contained one or more unsupported characters",
+                            bot_chat,
+                        )
+                        return
+
+                    await send_message(
+                        f"++**Phonetic characters:**++\n{result}", bot_chat
                     )
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
