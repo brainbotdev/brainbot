@@ -1,13 +1,13 @@
-import phonetic_alphabet as alpha
-import string
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from os import getenv, system
+from string import punctuation
 from sys import executable
 
 from dotenv import load_dotenv
 from git import Repo
 from googletrans import Translator
+from phonetic_alphabet import read as phonetics
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
@@ -239,13 +239,13 @@ async def main():
 
                     # Check for special characters
                     for i in msg.text[6:]:
-                        if i in string.punctuation:
+                        if i in punctuation:
                             await send_message(
                                 "Please do not include special characters", bot_chat
                             )
                             return
 
-                    await send_message(alpha.read(msg.text.lower()[6:]), bot_chat)
+                    await send_message(phonetics(msg.text.lower()[6:]), bot_chat)
 
             @session.on_connection_loss
             async def _on_connection_loss():
