@@ -292,8 +292,7 @@ async def main():
                             break
                         else:
                             valid=False
-                            #await chat.send_message("Incorrect", creator)
-                            #break
+
 
                     if valid==False:
                         await chat.send_message("Incorrect", creator)        
