@@ -245,6 +245,10 @@ async def main():
                     if seconds.isalpha()==True:
                         await forum_or_team.send_message("Please do not include letters.", creator)
                         valid=False
+                    seconds=int(seconds)
+                    if seconds > 3600:
+                        forum_or_team=ryver.get_groupchat(name="Timer/Vote Testing")
+                        await forum_or_team.send_message("I cannot set timers for over an hour.",creator)
 
                
 
