@@ -249,7 +249,58 @@ async def main():
                     else:
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
+                
                         )
+                        
+                file=open("TriviaQuestions.txt","r")
+                Afile=open("TriviaAnswers.txt","r")
+                record=file.readlines()
+                Arecord=Afile.readlines()
+                file.close
+                Afile.close
+                QuestionsArray=[]
+
+
+
+
+
+                elif msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters 
+                    chat = ryver.get_chat(jid=msg.to_jid)
+                    
+
+                    for line in record:
+                        Questions,Answers=line.split(",")
+                        QuestionsArray.append(Questions)
+
+                    await chat.send_message(random.choice(QuestionsArray), creator)
+
+                elif msg.text.lower().startswith ("!response"):
+                    from_user = ryver.get_user(jid=msg.from_jid)
+                    chat = ryver.get_chat(jid=msg.to_jid)
+                    valid=True
+                    
+                    
+                    #for line in Answersrecord:
+                    Afile = open("TriviaAnswers.txt","r")
+                    message=msg.text.strip().strip("!response")
+                    for line in Afile:
+                        if message in line:
+                            chat = ryver.get_chat(jid=msg.to_jid)
+                            user = ryver.get_user(jid=msg.from_jid)
+                            await chat.send_message("Correct", creator)
+                            valid=True
+                            break
+                        else:
+                            valid=False
+                            #await chat.send_message("Incorrect", creator)
+                            #break
+
+                    if valid==False:
+                        await chat.send_message("Incorrect", creator)        
+                        
+                        
+                        
+                        
 
             @session.on_connection_loss
             async def _on_connection_loss():
