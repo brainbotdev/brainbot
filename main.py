@@ -15,6 +15,7 @@ from pyryver.util import retry_until_available
 import urllib.request
 from bs4 import BeautifulSoup
 import re
+import random
 
 
 
@@ -269,55 +270,54 @@ async def main():
 
 
 
-                elif msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters 
-                    chat = ryver.get_chat(jid=msg.to_jid)
+                if msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters 
                     
+
 
                     for line in record:
                         Questions,Answers=line.split(",")
                         QuestionsArray.append(Questions)
 
-                    await chat.send_message(random.choice(QuestionsArray), creator)
+                    await send_message(random.choice(QuestionsArray), bot_chat)
 
                 elif msg.text.lower().startswith ("!response"):
                     from_user = ryver.get_user(jid=msg.from_jid)
-                    chat = ryver.get_chat(jid=msg.to_jid)
+                    
                     valid=True
-                    
-                    
+
+
                     #for line in Answersrecord:
                     Afile = open("TriviaAnswers.txt","r")
                     message=msg.text.strip().strip("!response")
                     for line in Afile:
                         if message in line:
-                            chat = ryver.get_chat(jid=msg.to_jid)
                             user = ryver.get_user(jid=msg.from_jid)
-                            await chat.send_message("Correct", creator)
+                            await send_message("Correct", bot_chat)
                             valid=True
                             break
                         else:
                             valid=False
 
-
                     if valid==False:
-                        await chat.send_message("Incorrect", creator)
+                        await send_message("Incorrect", bot_chat)
+                        
                 elif msg.text.lower().startswith ("!define"):
-                        chat = ryver.get_chat(jid=msg.to_jid)
-                        word=msg.text.lstrip("!define")
-                        word= word.replace(' ', '')
+                    
+                    word=msg.text.lstrip("!define")
+                    word= word.replace(' ', '')
 
-                        url = "https://www.lexico.com/definition/"+ word +""
-                        htmlfile = urllib.request.urlopen(url)
-                        soup = BeautifulSoup(htmlfile, 'lxml')
+                    url = "https://www.lexico.com/definition/"+ word +""
+                    htmlfile = urllib.request.urlopen(url)
+                    soup = BeautifulSoup(htmlfile, 'lxml')
 
-                        soup1 = soup.find(class_="ind")
-                        output=soup1.get_text()
+                    soup1 = soup.find(class_="ind")
+                    output=soup1.get_text()
 
 
-                        await chat.send_message(str(output),creator)
+                    await send_message(str(output),bot_chat)
 
                 elif msg.text.lower().startswith ("!synonyms"):
-                    chat = ryver.get_chat(jid=msg.to_jid)
+                    
                     word=msg.text.lstrip("!synonyms")
                     word= word.replace(' ', '')
 
@@ -332,7 +332,7 @@ async def main():
 
 
 
-                    await chat.send_message(str(output),creator)                                 
+                    await send_message(str(output),bot_chat)                                       
                         
                         
                         
