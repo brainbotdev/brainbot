@@ -19,7 +19,7 @@ Now, make sure you have all the requirements installed and up-to-date:
 $ pip install --upgrade -r requirements.txt
 ```
 
-Next up, you'll need to set up some environment variables. Copy or rename the `.env.example` file to `.env` and fill in the values.
+Next up, you'll need to set up some environment variables. Copy the `.env.example` file to `.env` and fill in the values.
 
 Finally, run the bot with this simple command:
 
