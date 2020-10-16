@@ -257,19 +257,11 @@ async def main():
                 
                         )
                         
-                file=open("TriviaQuestions.txt","r")
-                Afile=open("TriviaAnswers.txt","r")
-                record=file.readlines()
-                Arecord=Afile.readlines()
-                file.close
-                Afile.close
-                QuestionsArray=[]
-
-
-
-
-
-                elif msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters 
+                elif msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters
+                    file=open("TriviaQuestions.txt","r")
+                    record=file.readlines()
+                    file.close
+                    QuestionsArray=[]
                     chat = ryver.get_chat(jid=msg.to_jid)
                     
 
@@ -280,6 +272,9 @@ async def main():
                     await chat.send_message(random.choice(QuestionsArray), creator)
 
                 elif msg.text.lower().startswith ("!response"):
+                    Afile=open("TriviaAnswers.txt","r")
+                    Arecord=Afile.readlines()
+                    Afile.close
                     from_user = ryver.get_user(jid=msg.from_jid)
                     chat = ryver.get_chat(jid=msg.to_jid)
                     valid=True
@@ -301,20 +296,23 @@ async def main():
 
                     if valid==False:
                         await chat.send_message("Incorrect", creator)
+
+
+                        
                 elif msg.text.lower().startswith ("!define"):
-                        chat = ryver.get_chat(jid=msg.to_jid)
-                        word=msg.text.lstrip("!define")
-                        word= word.replace(' ', '')
+                    chat = ryver.get_chat(jid=msg.to_jid)
+                    word=msg.text.lstrip("!define")
+                    word= word.replace(' ', '')
 
-                        url = "https://www.lexico.com/definition/"+ word +""
-                        htmlfile = urllib.request.urlopen(url)
-                        soup = BeautifulSoup(htmlfile, 'lxml')
+                    url = "https://www.lexico.com/definition/"+ word +""
+                    htmlfile = urllib.request.urlopen(url)
+                    soup = BeautifulSoup(htmlfile, 'lxml')
 
-                        soup1 = soup.find(class_="ind")
-                        output=soup1.get_text()
+                    soup1 = soup.find(class_="ind")
+                    output=soup1.get_text()
 
 
-                        await chat.send_message(str(output),creator)
+                    await chat.send_message(str(output),creator)
 
                 elif msg.text.lower().startswith ("!synonyms"):
                     chat = ryver.get_chat(jid=msg.to_jid)
@@ -332,7 +330,7 @@ async def main():
 
 
 
-                    await chat.send_message(str(output),creator)                                 
+                    await chat.send_message(str(output),creator)                            
                         
                         
                         
