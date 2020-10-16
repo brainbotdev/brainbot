@@ -12,6 +12,11 @@ from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
+import urllib.request
+from bs4 import BeautifulSoup
+import re
+
+
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -295,7 +300,39 @@ async def main():
 
 
                     if valid==False:
-                        await chat.send_message("Incorrect", creator)        
+                        await chat.send_message("Incorrect", creator)
+                elif msg.text.lower().startswith ("!define"):
+                        chat = ryver.get_chat(jid=msg.to_jid)
+                        word=msg.text.lstrip("!define")
+                        word= word.replace(' ', '')
+
+                        url = "https://www.lexico.com/definition/"+ word +""
+                        htmlfile = urllib.request.urlopen(url)
+                        soup = BeautifulSoup(htmlfile, 'lxml')
+
+                        soup1 = soup.find(class_="ind")
+                        output=soup1.get_text()
+
+
+                        await chat.send_message(str(output),creator)
+
+                elif msg.text.lower().startswith ("!synonyms"):
+                    chat = ryver.get_chat(jid=msg.to_jid)
+                    word=msg.text.lstrip("!synonyms")
+                    word= word.replace(' ', '')
+
+
+                    url = "https://www.lexico.com/synonym/"+ word +""
+                    htmlfile = urllib.request.urlopen(url)
+                    soup = BeautifulSoup(htmlfile, 'lxml')
+
+                    soup1 = soup.find(class_="synList")
+                    text=soup1.get_text()
+                    output=text.strip("SYNONYMS")
+
+
+
+                await chat.send_message(str(output),creator)                                 
                         
                         
                         
