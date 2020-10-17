@@ -12,6 +12,7 @@ from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
+import random
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -112,6 +113,14 @@ async def main():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")
+                        
+                # Random Emoticon
+                elif msg.text.lower().startswith("!emoticon"):
+                    emoticons = ["( ͡❛ ͜ʖ ͡❛)","O_o","（　´_ゝ`）","(╯°□°）╯︵ ┻━┻",":-)","<(o_o<)","(/^▽^)/","(•‿•)"]
+                    console.log(f"Giving {user.get_username()} a random emoticon.")
+                    await send_message(random.choice(emoticons), bot_chat)
+                    
+
                 # Repeat after the user
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
