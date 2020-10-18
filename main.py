@@ -26,6 +26,8 @@ config.read("brainbot.ini")
 
 tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback=200))
 topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
+repeat_cooldown = Cooldown(config.getint("cooldowns", "repeat", fallback=45))
+phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
 
 math_parser = Parser()
 topic_engine = TopicGenerator()
@@ -116,7 +118,7 @@ async def main():
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
                     console.log(f"Repeating {user.get_username()}")
-                    if tell_me_to_cooldown.run(username=user.get_username()):
+                    if repeat_cooldown.run(username=user.get_username()):
                         await send_message(
                             f"{msg_text}",
                             bot_chat,
@@ -194,7 +196,7 @@ async def main():
                 elif msg.text.lower().startswith("!phon"):
                     console.log(f"Giving a phonetic spelling for {user.get_username()}")
                     # Check length to ensure a value is there
-                    if tell_me_to_cooldown.run(username=user.get_username()):
+                    if phon_cooldown.run(username=user.get_username()):
                         if len(msg.text) <= 6:
                             await send_message(
                                 "Please enter a word or phrase to be converted",
