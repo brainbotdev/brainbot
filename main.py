@@ -1,6 +1,7 @@
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from os import getenv, system
+from random import choice
 from string import punctuation
 from sys import executable
 
@@ -218,6 +219,20 @@ async def main():
                         )
                     else:
                         console.log("Cancelled due to cooldown")
+                # Random Emoticon
+                elif msg.text.lower().startswith("!emoticon"):
+                    emoticons = [
+                        "( ͡❛ ͜ʖ ͡❛)",
+                        "O_o",
+                        "（　´_ゝ`）",
+                        "(╯°□°）╯︵ ┻━┻",
+                        ":-)",
+                        "<(o_o<)",
+                        "(/^▽^)/",
+                        "(•‿•)",
+                    ]
+                    console.log(f"Giving {user.get_username()} a random emoticon.")
+                    await send_message(choice(emoticons), bot_chat)
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
