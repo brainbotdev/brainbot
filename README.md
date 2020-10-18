@@ -1,5 +1,5 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-# BrainBot [![Version 1.1.0](https://img.shields.io/badge/version-1.1.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-6-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]
+# BrainBot [![Version 1.1.0](https://img.shields.io/badge/version-1.1.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 **A simple and fun Ryver bot to liven up the conversation**
@@ -49,6 +49,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://www.linkedin.com/in/midhunnair/"><img src="https://avatars2.githubusercontent.com/u/24776450?v=4" width="100px;" alt=""/><br /><sub><b>Midhun R Nair</b></sub></a><br /><a href="https://github.com/brainbotdev/brainbot/commits?author=midhun1998" title="Code">💻</a></td>
     <td align="center"><a href="https://yohanes.gultom.id"><img src="https://avatars3.githubusercontent.com/u/1680876?v=4" width="100px;" alt=""/><br /><sub><b>Yohanes Gultom</b></sub></a><br /><a href="https://github.com/brainbotdev/brainbot/commits?author=yohanesgultom" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/DarianAmin"><img src="https://avatars1.githubusercontent.com/u/70491110?v=4" width="100px;" alt=""/><br /><sub><b>Darian Amin</b></sub></a><br /><a href="#ideas-DarianAmin" title="Ideas, Planning, & Feedback">🤔</a> <a href="https://github.com/brainbotdev/brainbot/commits?author=DarianAmin" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/Thromax"><img src="https://avatars3.githubusercontent.com/u/20110319?v=4" width="100px;" alt=""/><br /><sub><b>Thromax</b></sub></a><br /><a href="https://github.com/brainbotdev/brainbot/commits?author=Thromax" title="Code">💻</a></td>
   </tr>
 </table>
 
