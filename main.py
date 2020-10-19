@@ -222,14 +222,16 @@ async def main():
                 # Random Emoticon
                 elif msg.text.lower().startswith("!emoticon"):
                     emoticons = [
-                        "( ͡❛ ͜ʖ ͡❛)",
-                        "O_o",
-                        "（　´_ゝ`）",
-                        "(╯°□°）╯︵ ┻━┻",
-                        ":-)",
-                        "<(o_o<)",
-                        "(/^▽^)/",
-                        "(•‿•)",
+                        "`( ͡❛ ͜ʖ ͡❛)`",
+                        "`O_o`",
+                        "`（　0ゝ0 )`",
+                        "`(╯°□°）╯︵ ┻━┻`",
+                        "`:-)`",
+                        "`<(o_o<)`",
+                        "`(/^▽^)/`",
+                        "`〠_〠`",
+                        "`(￢‿￢ )`"
+                        "`ᕕ( ᐛ )ᕗ`"
                     ]
                     console.log(f"Giving {user.get_username()} a random emoticon.")
                     await send_message(choice(emoticons), bot_chat)
