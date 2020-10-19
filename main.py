@@ -222,7 +222,7 @@ async def main():
                 # Random Emoticon
                 elif msg.text.lower().startswith("!emoticon"):
                     emoticons = [
-                        "`( ͡❛ ͜ʖ ͡❛)"`,
+                        "`( ͡❛ ͜ʖ ͡❛)`",
                         "`O_o`",
                         "`（　´_ゝ`）`",
                         "`(╯°□°）╯︵ ┻━┻`",
