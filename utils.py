@@ -24,8 +24,9 @@ async def send_message(message, chat, footer_end=""):
     footer = footer.strip().replace(" ", "^ ^")
     footer = f"^{footer}^"
 
-    await chat.send_message(
-        f"{message}\n\n{footer}", creator=creator,
+    return await chat.send_message(
+        f"{message}\n\n{footer}",
+        creator=creator,
     )
 
 
