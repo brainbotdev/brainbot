@@ -29,6 +29,7 @@ tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback
 topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 repeat_cooldown = Cooldown(config.getint("cooldowns", "repeat", fallback=45))
 phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
+poll_cooldown = Cooldown(config.getint("cooldowns", "poll", fallback=100))
 
 math_parser = Parser()
 topic_engine = TopicGenerator()
@@ -231,67 +232,69 @@ async def main():
                         "`(/^▽^)/`",
                         "`〠_〠`",
                         "`(￢‿￢ )`",
-                        "`ᕕ( ᐛ )ᕗ`"
+                        "`ᕕ( ᐛ )ᕗ`",
                     ]
                     console.log(f"Giving {user.get_username()} a random emoticon.")
                     await send_message(choice(emoticons), bot_chat)
                 # Create Poll
                 elif msg.text.lower().startswith("!poll"):
-                    reactions = [
-                        "zero",
-                        "one",
-                        "two",
-                        "three",
-                        "four",
-                        "five",
-                        "six",
-                        "seven",
-                        "eight",
-                        "nine",
-                        "keycap_ten",
-                    ]
-                    # Get potential arguments
-                    inputs = [value.strip() for value in msg.text[6:].split(";")]
+                    if poll_cooldown.run(username=user.get_username()):
+                        reactions = [
+                            "zero",
+                            "one",
+                            "two",
+                            "three",
+                            "four",
+                            "five",
+                            "six",
+                            "seven",
+                            "eight",
+                            "nine",
+                            "keycap_ten",
+                        ]
+                        # Get potential arguments
+                        inputs = [value.strip() for value in msg.text[6:].split(";")]
 
-                    # Remove any empty arguments
-                    while "" in inputs:
-                        inputs.remove("")
+                        # Remove any empty arguments
+                        while "" in inputs:
+                            inputs.remove("")
 
-                    # Check if the command contains a valid number of arguments
-                    if len(inputs) < 3:
-                        console.log(len(inputs))
-                        await send_message(
-                            "Please enter a question and at least two options to create a poll",
-                            bot_chat,
-                        )
-                    elif len(inputs) > (len(reactions) + 1):
-                        await send_message(
-                            "Your poll contained too many options", bot_chat
-                        )
+                        # Check if the command contains a valid number of arguments
+                        if len(inputs) < 3:
+                            console.log(len(inputs))
+                            await send_message(
+                                "Please enter a question and at least two options to create a poll",
+                                bot_chat,
+                            )
+                        elif len(inputs) > (len(reactions) + 1):
+                            await send_message(
+                                "Your poll contained too many options", bot_chat
+                            )
+                        else:
+                            console.log(
+                                f'Creating poll "{inputs[0]}" for {user.get_username()}'
+                            )
+
+                            # Create formatted poll text
+                            poll_txt = "**{0}**\n".format(inputs[0])
+                            for i, text in enumerate(range(1, len(inputs))):
+                                poll_txt += ":{0}: {1}\n".format(reactions[i], text)
+
+                            poll_id = await send_message(poll_txt, bot_chat)
+                            console.log(poll_id)
+
+                            # Get the poll message
+                            message = await retry_until_available(
+                                bot_chat.get_message,
+                                poll_id,
+                                timeout=5.0,
+                                retry_delay=0.5,
+                            )
+                            # Add reaction options
+                            for i in range(0, (len(inputs)) - 1):
+                                await message.react(reactions[i])
                     else:
-                        console.log(
-                            f'Creating poll "{inputs[0]}" for {user.get_username()}'
-                        )
-
-                        # Create formatted poll text
-                        poll_txt = "**{0}**\n".format(inputs[0])
-                        for i, text in enumerate(range(1, len(inputs))):
-                            poll_txt += ":{0}: {1}\n".format(reactions[i], text)
-
-                        poll_id = await send_message(poll_txt, bot_chat)
-                        console.log(poll_id)
-
-                        # Get the poll message
-                        message = await retry_until_available(
-                            bot_chat.get_message,
-                            poll_id,
-                            timeout=5.0,
-                            retry_delay=0.5,
-                        )
-                        # Add reaction options
-                        for i in range(0, (len(inputs)) - 1):
-                            await message.react(reactions[i])
-
+                        console.log("Cancelled due to cooldown")
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
