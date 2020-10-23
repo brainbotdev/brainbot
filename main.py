@@ -116,17 +116,24 @@ async def main():
                     else:
                         console.log("Cancelled due to cooldown")
                 # Repeat after the user
+                
                 elif msg.text.lower().startswith("!repeat"):
-                    msg_text = msg.text[8:]
-                    console.log(f"Repeating {user.get_username()}")
-                    if repeat_cooldown.run(username=user.get_username()):
-                        await send_message(
-                            f"{msg_text}",
-                            bot_chat,
-                            footer_end=f"This command was run by {user.get_username()}.",
-                        )
+                    text = msg.text[8:]
+                    
+                    commands = ["!emoticon","!commands","!phon", "!evaluate","!intro","!topic","!version","!translate","!pull","!restart","!shutdown"]
+                    
+                    if msg.text in commands:
+                        await send_message("I cannot run commands with repeats at the same time.")
                     else:
-                        console.log("Cancelled due to cooldown")
+                        if repeat_cooldown.run(username=user.get_username()):
+                            await send_message(
+                                f"{msg_text}",
+                                bot_chat,
+                                footer_end=f"This command was run by {user.get_username()}.",
+                            )
+                            console.log(f"Repeating {user.get_username()}")
+                        else:
+                            console.log("Cancelled due to cooldown")
                 # Give the current version
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
