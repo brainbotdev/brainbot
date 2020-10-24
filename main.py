@@ -1,6 +1,6 @@
 from asyncio import get_event_loop
 from configparser import ConfigParser
-from datetime import datetime
+from datetime import datetime, timedelta
 from os import getenv, system
 from random import choice
 from string import punctuation
@@ -17,7 +17,7 @@ from pyryver.objects import TaskBoard
 from pyryver.util import datetime_to_iso8601, retry_until_available
 from pytz import timezone
 
-from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
+from utils import Cooldown, TopicGenerator, bot_dir, console, remind_task, send_message
 
 __version__ = "1.2.0"
 
@@ -86,7 +86,9 @@ async def main():
         elif task_board.get_board_type() == TaskBoard.BOARD_TYPE_LIST:
             console.log("Task list in use, BrainBot will not use categories for tasks")
         console.log(
-            f"Loaded user {getenv('RYVER_USER')} task {task_board.get_board_type()}"
+            "Loaded user {0} task {1}".format(
+                getenv("RYVER_USER"), task_board.get_board_type()
+            )
         )
 
         async with ryver.get_live_session() as session:
@@ -286,12 +288,24 @@ async def main():
                                 # Parse ending time
                                 due_date = inputs[0][2:]
                                 due_date = datetime.strptime(due_date, "%H:%M")
-                                due_date = datetime.combine(
-                                    datetime.now(
-                                        timezone(bot_user.get_time_zone())
-                                    ).date(),
-                                    due_date.time(),
+                                # Get current time at bot timezone
+                                current_date = datetime.now(
+                                    timezone(bot_user.get_time_zone())
                                 )
+
+                                # If entered hour is earlier (or equal) than the current time, set date due for the next day
+                                if current_date.time() >= due_date.time():
+                                    due_date = datetime.combine(
+                                        current_date.today() + timedelta(days=1),
+                                        due_date.time(),
+                                    )
+                                else:
+                                    due_date = datetime.combine(
+                                        current_date.today(),
+                                        due_date.time(),
+                                    )
+
+                                # Set date's timezone
                                 due_date = due_date.astimezone(
                                     timezone(bot_user.get_time_zone())
                                 )
@@ -311,63 +325,90 @@ async def main():
                             except ValueError:
                                 due_date = False
                         if due_date is None or due_date is not False:
-                            # Check if the command contains a valid number of arguments
-                            if len(inputs) < 3:
-                                await send_message(
-                                    "Please enter a question and at least two options to create a poll",
-                                    bot_chat,
-                                )
-                            elif len(inputs) > (len(poll_reactions) + 1):
-                                await send_message(
-                                    f"Your poll contained too many options, limit is {len(poll_reactions)} options",
-                                    bot_chat,
-                                )
+                            current_date = datetime.now(
+                                timezone(bot_user.get_time_zone())
+                            )
+
+                            # In case of valid due time, check if it's already in the past
+                            if (
+                                due_date is None
+                                or int((due_date - current_date).total_seconds() / 60)
+                                > 0
+                            ):
+
+                                # Check if the command contains a valid number of arguments
+                                if len(inputs) < 3:
+                                    await send_message(
+                                        "Please enter a question and at least two options to create a poll",
+                                        bot_chat,
+                                    )
+                                elif len(inputs) > (len(poll_reactions) + 1):
+                                    await send_message(
+                                        f"Your poll contained too many options, limit is {len(poll_reactions)} options",
+                                        bot_chat,
+                                    )
+                                else:
+                                    console.log(
+                                        f'Creating poll "{inputs[0]}" for {user.get_username()}'
+                                    )
+
+                                    # Create formatted poll text
+                                    poll_txt = "# {0}\n".format(inputs[0])
+                                    for i in range(1, len(inputs)):
+                                        poll_txt += ":{0}: {1}\n".format(
+                                            poll_reactions[i - 1], inputs[i]
+                                        )
+
+                                    if due_date is not None:
+                                        poll_txt += "\n\n**Poll will end on {0} at {1} ({2})**".format(
+                                            due_date.date(),
+                                            due_date.time(),
+                                            due_date.tzname(),
+                                        )
+                                    poll_id = await send_message(
+                                        poll_txt,
+                                        bot_chat,
+                                        f"This poll was created by {user.get_username()}",
+                                    )
+
+                                    # Get the poll message
+                                    message = await retry_until_available(
+                                        bot_chat.get_message,
+                                        poll_id,
+                                        timeout=5.0,
+                                        retry_delay=0.5,
+                                    )
+
+                                    # Add reaction options
+                                    for i in range(0, (len(inputs)) - 1):
+                                        await message.react(poll_reactions[i])
+
+                                    # Set ending timer using tasks
+                                    if due_date is not None:
+                                        task_body = "{0};{1}".format(poll_id, inputs[0])
+                                        for i in inputs[1:]:
+                                            task_body += ";{0}".format(i)
+                                        poll_task = await task_board.create_task(
+                                            "BrainBotPoll",
+                                            task_body,
+                                            due_date=datetime_to_iso8601(due_date),
+                                        )
+                                        # Create task reminder
+                                        await remind_task(
+                                            ryver,
+                                            poll_task,
+                                            int(
+                                                (
+                                                    due_date - current_date
+                                                ).total_seconds()
+                                                / 60
+                                            ),
+                                        )
                             else:
-                                console.log(
-                                    f'Creating poll "{inputs[0]}" for {user.get_username()}'
-                                )
-
-                                # Create formatted poll text
-                                poll_txt = "# {0}\n".format(inputs[0])
-                                for i in range(1, len(inputs)):
-                                    poll_txt += ":{0}: {1}\n".format(
-                                        poll_reactions[i - 1], inputs[i]
-                                    )
-
-                                if due_date is not None:
-                                    poll_txt += "\n\n**Poll will end on {0} at {1} ({2})**".format(
-                                        due_date.date(),
-                                        due_date.time(),
-                                        due_date.tzname(),
-                                    )
-                                poll_id = await send_message(
-                                    poll_txt,
+                                await send_message(
+                                    "Ending time entered is already in the past",
                                     bot_chat,
-                                    f"This poll was created by {user.get_username()}",
                                 )
-
-                                # Get the poll message
-                                message = await retry_until_available(
-                                    bot_chat.get_message,
-                                    poll_id,
-                                    timeout=5.0,
-                                    retry_delay=0.5,
-                                )
-
-                                # Add reaction options
-                                for i in range(0, (len(inputs)) - 1):
-                                    await message.react(poll_reactions[i])
-
-                                # Set ending timer using tasks
-                                if due_date is not None:
-                                    task_body = "{0};{1}".format(poll_id, inputs[0])
-                                    for i in inputs[1:]:
-                                        task_body += ";{0}".format(i)
-                                    await task_board.create_task(
-                                        "BrainBotPoll",
-                                        task_body,
-                                        due_date=datetime_to_iso8601(due_date),
-                                    )
                         else:
                             await send_message(
                                 "Ending time entered is not valid. You can use either `t=hh:mm` or `d=mm/dd/yyyy hh:mm`",

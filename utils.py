@@ -1,8 +1,10 @@
+from os import getenv
 from pathlib import Path
 from random import sample
 from time import time
 
-from pyryver.objects import Creator
+from aiohttp import BasicAuth, ClientSession, ContentTypeError
+from pyryver.objects import Creator, Ryver, Task
 from pyryver.util import retry_until_available
 from rich.console import Console
 
@@ -28,6 +30,31 @@ async def send_message(message, chat, footer_end=""):
         f"{message}\n\n{footer}",
         creator=creator,
     )
+
+
+# Task reminder creator
+async def remind_task(ryver: Ryver, task: Task, minutes: int):
+    console.log("Opening another session to create a reminder")
+
+    async with ClientSession(
+        auth=BasicAuth(getenv("RYVER_USER"), getenv("RYVER_PASS")),
+        raise_for_status=True,
+    ) as session:
+        url = ryver.get_api_url(
+            obj_type="tasks",
+            obj_id=task.get_id(),
+            action="UserNotification.Reminder.Create()",
+            format="json",
+        )
+        data = {"when": f"+{minutes} minutes"}
+        console.log("Creating reminder")
+        try:
+            async with session.post(url, json=data) as resp:
+                return (await resp.json())["d"]["id"]
+        except ContentTypeError:
+            pass
+        console.log("Reminder created")
+        await session.close()
 
 
 # Cooldown utility
