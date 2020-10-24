@@ -1,5 +1,6 @@
 from asyncio import get_event_loop
 from configparser import ConfigParser
+from datetime import datetime
 from os import getenv, system
 from random import choice
 from string import punctuation
@@ -12,7 +13,9 @@ from phonetic_alphabet import read as phonetics
 from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
-from pyryver.util import retry_until_available
+from pyryver.objects import TaskBoard
+from pyryver.util import datetime_to_iso8601, retry_until_available
+from pytz import timezone
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -30,6 +33,19 @@ topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 repeat_cooldown = Cooldown(config.getint("cooldowns", "repeat", fallback=45))
 phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
 poll_cooldown = Cooldown(config.getint("cooldowns", "poll", fallback=100))
+
+# Load poll reactions
+poll_reactions = config.get(
+    "misc",
+    "poll_reactions",
+    fallback="zero;one;two;three;four;five;six;seven;eight;nine;keycap_ten",
+).split(";")
+
+# Load task board categories
+poll_task_category = config.get("task_categories", "poll", fallback="BrainBot:Polls")
+task_board_categories = [
+    poll_task_category,
+]
 
 math_parser = Parser()
 topic_engine = TopicGenerator()
@@ -55,6 +71,23 @@ async def main():
         bot_admins = [
             ryver.get_user(username=user) for user in getenv("BOT_ADMIN").split(",")
         ]
+
+        # Get bot user for task and timezone consults
+        bot_user = ryver.get_user(id=(await ryver.get_info())["me"]["id"])
+
+        # Get bot task board (used for setting timers)
+        task_board = await bot_user.get_task_board()
+        if task_board is None:
+            console.log("Creating task board")
+            await bot_user.create_task_board(
+                board_type=TaskBoard.BOARD_TYPE_BOARD, categories=["BrainBot:Polls"]
+            )
+            task_board = await bot_user.get_task_board()
+        elif task_board.get_board_type() == TaskBoard.BOARD_TYPE_LIST:
+            console.log("Task list in use, BrainBot will not use categories for tasks")
+        console.log(
+            f"Loaded user {getenv('RYVER_USER')} task {task_board.get_board_type()}"
+        )
 
         async with ryver.get_live_session() as session:
             console.log("In live session")
@@ -239,19 +272,6 @@ async def main():
                 # Create Poll
                 elif msg.text.lower().startswith("!poll"):
                     if poll_cooldown.run(username=user.get_username()):
-                        reactions = [
-                            "zero",
-                            "one",
-                            "two",
-                            "three",
-                            "four",
-                            "five",
-                            "six",
-                            "seven",
-                            "eight",
-                            "nine",
-                            "keycap_ten",
-                        ]
                         # Get potential arguments
                         inputs = [value.strip() for value in msg.text[6:].split(";")]
 
@@ -259,40 +279,100 @@ async def main():
                         while "" in inputs:
                             inputs.remove("")
 
-                        # Check if the command contains a valid number of arguments
-                        if len(inputs) < 3:
-                            console.log(len(inputs))
+                        # Check if the command contains due date argument
+                        due_date = None
+                        if inputs[0].startswith("t="):
+                            try:
+                                # Parse ending time
+                                due_date = inputs[0][2:]
+                                due_date = datetime.strptime(due_date, "%H:%M")
+                                due_date = datetime.combine(
+                                    datetime.now(
+                                        timezone(bot_user.get_time_zone())
+                                    ).date(),
+                                    due_date.time(),
+                                )
+                                due_date = due_date.astimezone(
+                                    timezone(bot_user.get_time_zone())
+                                )
+                                inputs.pop(0)
+                            except ValueError:
+                                due_date = False
+
+                        if inputs[0].startswith("d="):
+                            try:
+                                # Parse full ending date
+                                due_date = inputs[0][2:]
+                                due_date = datetime.strptime(due_date, "%m/%d/%Y %H:%M")
+                                due_date = due_date.astimezone(
+                                    timezone(bot_user.get_time_zone())
+                                )
+                                inputs.pop(0)
+                            except ValueError:
+                                due_date = False
+                        if due_date is None or due_date is not False:
+                            # Check if the command contains a valid number of arguments
+                            if len(inputs) < 3:
+                                await send_message(
+                                    "Please enter a question and at least two options to create a poll",
+                                    bot_chat,
+                                )
+                            elif len(inputs) > (len(poll_reactions) + 1):
+                                await send_message(
+                                    f"Your poll contained too many options, limit is {len(poll_reactions)} options",
+                                    bot_chat,
+                                )
+                            else:
+                                console.log(
+                                    f'Creating poll "{inputs[0]}" for {user.get_username()}'
+                                )
+
+                                # Create formatted poll text
+                                poll_txt = "# {0}\n".format(inputs[0])
+                                for i in range(1, len(inputs)):
+                                    poll_txt += ":{0}: {1}\n".format(
+                                        poll_reactions[i - 1], inputs[i]
+                                    )
+
+                                if due_date is not None:
+                                    poll_txt += "\n\n**Poll will end on {0} at {1} ({2})**".format(
+                                        due_date.date(),
+                                        due_date.time(),
+                                        due_date.tzname(),
+                                    )
+                                poll_id = await send_message(
+                                    poll_txt,
+                                    bot_chat,
+                                    f"This poll was created by {user.get_username()}",
+                                )
+
+                                # Get the poll message
+                                message = await retry_until_available(
+                                    bot_chat.get_message,
+                                    poll_id,
+                                    timeout=5.0,
+                                    retry_delay=0.5,
+                                )
+
+                                # Add reaction options
+                                for i in range(0, (len(inputs)) - 1):
+                                    await message.react(poll_reactions[i])
+
+                                # Set ending timer using tasks
+                                if due_date is not None:
+                                    task_body = "{0};{1}".format(poll_id, inputs[0])
+                                    for i in inputs[1:]:
+                                        task_body += ";{0}".format(i)
+                                    await task_board.create_task(
+                                        "BrainBotPoll",
+                                        task_body,
+                                        due_date=datetime_to_iso8601(due_date),
+                                    )
+                        else:
                             await send_message(
-                                "Please enter a question and at least two options to create a poll",
+                                "Ending time entered is not valid. You can use either `t=hh:mm` or `d=mm/dd/yyyy hh:mm`",
                                 bot_chat,
                             )
-                        elif len(inputs) > (len(reactions) + 1):
-                            await send_message(
-                                "Your poll contained too many options", bot_chat
-                            )
-                        else:
-                            console.log(
-                                f'Creating poll "{inputs[0]}" for {user.get_username()}'
-                            )
-
-                            # Create formatted poll text
-                            poll_txt = "**{0}**\n".format(inputs[0])
-                            for i, text in enumerate(range(1, len(inputs))):
-                                poll_txt += ":{0}: {1}\n".format(reactions[i], text)
-
-                            poll_id = await send_message(poll_txt, bot_chat)
-                            console.log(poll_id)
-
-                            # Get the poll message
-                            message = await retry_until_available(
-                                bot_chat.get_message,
-                                poll_id,
-                                timeout=5.0,
-                                retry_delay=0.5,
-                            )
-                            # Add reaction options
-                            for i in range(0, (len(inputs)) - 1):
-                                await message.react(reactions[i])
                     else:
                         console.log("Cancelled due to cooldown")
                 # Give a list of commands
