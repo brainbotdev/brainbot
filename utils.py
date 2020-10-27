@@ -4,7 +4,7 @@ from random import sample
 from time import time
 
 from aiohttp import BasicAuth, ClientSession, ContentTypeError
-from pyryver.objects import Creator, Ryver, Task
+from pyryver.objects import Chat, Creator, Ryver, Task
 from pyryver.util import retry_until_available
 from rich.console import Console
 
@@ -34,6 +34,10 @@ async def send_message(message, chat, footer_end=""):
 
 # Task reminder creator
 async def remind_task(ryver: Ryver, task: Task, minutes: int):
+    """
+    Apparently you can't either create reminders through pyryver or get the current session to send POST requests,
+    so this method creates another session and sets the task reminder before closing it.
+    """
     console.log("Opening another session to create a reminder")
 
     async with ClientSession(
@@ -55,6 +59,41 @@ async def remind_task(ryver: Ryver, task: Task, minutes: int):
             pass
         console.log("Reminder created")
         await session.close()
+
+
+# Retrieves poll results and shows it on chat as a reply to the original poll message
+async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
+    console.log("Retrieving poll results")
+    message = await retry_until_available(
+        chat.get_message,
+        poll_id,
+        timeout=5.0,
+        retry_delay=0.5,
+    )
+
+    # Get poll number of reactions in count order
+    poll_votes = []
+    for emoji, users in message.get_reactions().items():
+        # Remove bot reactions from count
+        users.remove(bot_id)
+        poll_votes.append([emoji, len(users)])
+    poll_votes = sorted(poll_votes, reverse=True, key=lambda x: x[1])
+
+    most_voted = poll_votes[0][1]
+
+    # Reply on chat to show the results
+    # Send poll text as reply to original message
+    msg_body = ">{0}".format(message.get_body()).replace("\n", "\n>")
+    msg_body += "\n## Poll results:"
+
+    bold = ""
+    for vote_reaction, vote_count in poll_votes:
+        bold = "**" if vote_count == most_voted else ""
+        msg_body += "\n{2}:{0}: : {1}{2}".format(vote_reaction, vote_count, bold)
+    await send_message(
+        msg_body,
+        chat,
+    )
 
 
 # Cooldown utility

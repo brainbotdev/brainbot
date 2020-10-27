@@ -3,7 +3,6 @@ from configparser import ConfigParser
 from datetime import datetime, timedelta
 from os import getenv, system
 from random import choice
-from string import punctuation
 from sys import executable
 
 from dotenv import load_dotenv
@@ -12,12 +11,21 @@ from googletrans import Translator
 from phonetic_alphabet import read as phonetics
 from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
-from pyryver import Ryver
-from pyryver.objects import TaskBoard
+from pyryver import Ryver, RyverWS
+from pyryver.objects import Message, Notification, Task, TaskBoard
 from pyryver.util import datetime_to_iso8601, retry_until_available
+from pyryver.ws_data import WSEventData
 from pytz import timezone
 
-from utils import Cooldown, TopicGenerator, bot_dir, console, remind_task, send_message
+from utils import (
+    Cooldown,
+    TopicGenerator,
+    bot_dir,
+    console,
+    remind_task,
+    send_message,
+    show_poll_results,
+)
 
 __version__ = "1.2.0"
 
@@ -40,12 +48,6 @@ poll_reactions = config.get(
     "poll_reactions",
     fallback="zero;one;two;three;four;five;six;seven;eight;nine;keycap_ten",
 ).split(";")
-
-# Load task board categories
-poll_task_category = config.get("task_categories", "poll", fallback="BrainBot:Polls")
-task_board_categories = [
-    poll_task_category,
-]
 
 math_parser = Parser()
 topic_engine = TopicGenerator()
@@ -273,6 +275,23 @@ async def main():
                     await send_message(choice(emoticons), bot_chat)
                 # Create Poll
                 elif msg.text.lower().startswith("!poll"):
+                    """
+                    Command usage:  !poll [t=due_time;]<poll_title>;<option1>;<option2>...
+                                    !poll [d=due_date;]<poll_title>;<option1>;<option2>...
+                                    [] = Optional <> = Mandatory
+                    Time should use the following format:   t=HH:MM
+                                                            d=mm/dd/yyyy HH:MM
+                        Time options d= and t= are not compatible.
+                        In case of using both only the first one will be used, while the other
+                        will be considered the title.
+                        Bot timezone will be used.
+
+                    Poll maximum option number depends of the amount of reactions in the config file
+                    setting 'misc:poll_reactions'.
+
+                    If due date/time is entered a task and a reminder will be created inside bot's personal
+                    task board in order to make ryver take care of timers instead of the bot itself.
+                    """
                     if poll_cooldown.run(username=user.get_username()):
                         # Get potential arguments
                         inputs = [value.strip() for value in msg.text[6:].split(";")]
@@ -389,7 +408,7 @@ async def main():
                                         for i in inputs[1:]:
                                             task_body += ";{0}".format(i)
                                         poll_task = await task_board.create_task(
-                                            "BrainBotPoll",
+                                            f"BrainBotPoll#{poll_id}",
                                             task_body,
                                             due_date=datetime_to_iso8601(due_date),
                                         )
@@ -406,16 +425,27 @@ async def main():
                                         )
                             else:
                                 await send_message(
-                                    "Ending time entered is already in the past",
+                                    "Ending time entered is already in the past or too short",
                                     bot_chat,
                                 )
                         else:
                             await send_message(
-                                "Ending time entered is not valid. You can use either `t=hh:mm` or `d=mm/dd/yyyy hh:mm`",
+                                "Ending time entered is not valid. You can use either `t=hh:mm;` or `d=mm/dd/yyyy hh:mm;`",
                                 bot_chat,
                             )
                     else:
                         console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
                 # Give a list of commands
                 elif msg.text.lower().startswith("!commands"):
                     console.log(f"Telling {user.get_username()} my commands")
@@ -455,6 +485,34 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+
+            @session.on_event(RyverWS.EVENT_ALL)
+            async def _on_event(event: WSEventData):
+                # Check if it's a notification event
+                if event.event_type == "/api/notify":
+                    notification = await Notification.get_by_id(
+                        ryver, obj_id=event.event_data.get("id")
+                    )
+                    # Check if it's a reminder notification
+                    if notification.get_predicate() == "reminder_for":
+                        # Check if it's a task reminder notification:
+                        if notification.get_object_entity_type() == "Entity.Tasks.Task":
+                            console.log("Task reminder received")
+                            task = await Task.get_by_id(
+                                ryver, obj_id=notification.get_object_id()
+                            )
+                            # Check if it's a poll task
+                            if task.get_subject().startswith("BrainBotPoll#"):
+                                # Poll tasks are saved as "BrainBotPoll#<poll_id>" so there's the poll id
+                                poll_id = task.get_subject().replace(
+                                    "BrainBotPoll#", ""
+                                )
+                                # Show poll results
+                                await show_poll_results(
+                                    chat=bot_chat,
+                                    poll_id=poll_id,
+                                    bot_id=bot_user.get_id(),
+                                )
 
             @session.on_connection_loss
             async def _on_connection_loss():
