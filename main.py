@@ -12,7 +12,7 @@ from phonetic_alphabet import read as phonetics
 from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver, RyverWS
-from pyryver.objects import Message, Notification, Task, TaskBoard
+from pyryver.objects import Notification, Task, TaskBoard
 from pyryver.util import datetime_to_iso8601, retry_until_available
 from pyryver.ws_data import WSEventData
 from pytz import timezone
@@ -22,6 +22,7 @@ from utils import (
     TopicGenerator,
     bot_dir,
     console,
+    handle_notification,
     remind_task,
     send_message,
     show_poll_results,
@@ -53,6 +54,7 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
+
 # Wrap in async function to use async context manager
 async def main():
     # Log into Ryver with regular username/password
@@ -78,20 +80,26 @@ async def main():
         bot_user = ryver.get_user(id=(await ryver.get_info())["me"]["id"])
 
         # Get bot task board (used for setting timers)
-        task_board = await bot_user.get_task_board()
-        if task_board is None:
+        bot_task_board = await bot_user.get_task_board()
+        if bot_task_board is None:
             console.log("Creating task board")
             await bot_user.create_task_board(
                 board_type=TaskBoard.BOARD_TYPE_BOARD, categories=["BrainBot:Polls"]
             )
-            task_board = await bot_user.get_task_board()
-        elif task_board.get_board_type() == TaskBoard.BOARD_TYPE_LIST:
+            bot_task_board = await bot_user.get_task_board()
+        elif bot_task_board.get_board_type() == TaskBoard.BOARD_TYPE_LIST:
             console.log("Task list in use, BrainBot will not use categories for tasks")
         console.log(
             "Loaded user {0} task {1}".format(
-                getenv("RYVER_USER"), task_board.get_board_type()
+                getenv("RYVER_USER"), bot_task_board.get_board_type()
             )
         )
+
+        # Handle unread notifications from last session (used for checking reminders)
+        async for notification in ryver.get_notifs(unread=True):
+            await handle_notification(
+                ryver=ryver, notification=notification, bot_chat=bot_chat
+            )
 
         async with ryver.get_live_session() as session:
             console.log("In live session")
@@ -278,12 +286,14 @@ async def main():
                     """
                     Command usage:  !poll [t=due_time;]<poll_title>;<option1>;<option2>...
                                     !poll [d=due_date;]<poll_title>;<option1>;<option2>...
+                                    !poll [m=minutes;]<poll_title>;<option1>;<option2>...
                                     [] = Optional <> = Mandatory
                     Time should use the following format:   t=HH:MM
                                                             d=mm/dd/yyyy HH:MM
-                        Time options d= and t= are not compatible.
-                        In case of using both only the first one will be used, while the other
-                        will be considered the title.
+                                                            m=<minutes>
+                        Time options d= ,t= and d= are not compatible.
+                        In case of using more than one of them only the first one will be used, while the other
+                        will be considered the rest of the arguments.
                         Bot timezone will be used.
 
                     Poll maximum option number depends of the amount of reactions in the config file
@@ -343,6 +353,21 @@ async def main():
                                 inputs.pop(0)
                             except ValueError:
                                 due_date = False
+
+                        if inputs[0].startswith("m="):
+                            try:
+                                due_date = int(inputs[0][2:])
+                                # Get current time at bot timezone
+                                current_date = datetime.now(
+                                    timezone(bot_user.get_time_zone())
+                                )
+                                due_date = current_date.replace(
+                                    microsecond=0
+                                ) + timedelta(minutes=due_date, seconds=1)
+                                inputs.pop(0)
+                            except ValueError:
+                                due_date = False
+
                         if due_date is None or due_date is not False:
                             current_date = datetime.now(
                                 timezone(bot_user.get_time_zone())
@@ -407,7 +432,7 @@ async def main():
                                         task_body = "{0};{1}".format(poll_id, inputs[0])
                                         for i in inputs[1:]:
                                             task_body += ";{0}".format(i)
-                                        poll_task = await task_board.create_task(
+                                        poll_task = await bot_task_board.create_task(
                                             f"BrainBotPoll#{poll_id}",
                                             task_body,
                                             due_date=datetime_to_iso8601(due_date),
@@ -430,7 +455,7 @@ async def main():
                                 )
                         else:
                             await send_message(
-                                "Ending time entered is not valid. You can use either `t=hh:mm;` or `d=mm/dd/yyyy hh:mm;`",
+                                "Ending time entered is not valid. You can any of these formats:\n `t=hh:mm;`\n `d=mm/dd/yyyy hh:mm;`\n`m=<minutes>;`\n**~Don't~ ~forget~ ~to~ ~use~ ~';'!~**",
                                 bot_chat,
                             )
                     else:
@@ -488,31 +513,15 @@ async def main():
 
             @session.on_event(RyverWS.EVENT_ALL)
             async def _on_event(event: WSEventData):
-                # Check if it's a notification event
+                # Check if it's an incoming notification event
+                # (Notification event type constant doesn't exist on PyRyver, so I hardcoded it)
                 if event.event_type == "/api/notify":
-                    notification = await Notification.get_by_id(
+                    notif = await Notification.get_by_id(
                         ryver, obj_id=event.event_data.get("id")
                     )
-                    # Check if it's a reminder notification
-                    if notification.get_predicate() == "reminder_for":
-                        # Check if it's a task reminder notification:
-                        if notification.get_object_entity_type() == "Entity.Tasks.Task":
-                            console.log("Task reminder received")
-                            task = await Task.get_by_id(
-                                ryver, obj_id=notification.get_object_id()
-                            )
-                            # Check if it's a poll task
-                            if task.get_subject().startswith("BrainBotPoll#"):
-                                # Poll tasks are saved as "BrainBotPoll#<poll_id>" so there's the poll id
-                                poll_id = task.get_subject().replace(
-                                    "BrainBotPoll#", ""
-                                )
-                                # Show poll results
-                                await show_poll_results(
-                                    chat=bot_chat,
-                                    poll_id=poll_id,
-                                    bot_id=bot_user.get_id(),
-                                )
+                    await handle_notification(
+                        ryver=ryver, notification=notif, bot_chat=bot_chat
+                    )
 
             @session.on_connection_loss
             async def _on_connection_loss():

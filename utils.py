@@ -1,10 +1,11 @@
+from asyncio.exceptions import TimeoutError
 from os import getenv
 from pathlib import Path
 from random import sample
 from time import time
 
 from aiohttp import BasicAuth, ClientSession, ContentTypeError
-from pyryver.objects import Chat, Creator, Ryver, Task
+from pyryver.objects import Chat, Creator, Notification, Ryver, Task
 from pyryver.util import retry_until_available
 from rich.console import Console
 
@@ -64,13 +65,16 @@ async def remind_task(ryver: Ryver, task: Task, minutes: int):
 # Retrieves poll results and shows it on chat as a reply to the original poll message
 async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
     console.log("Retrieving poll results")
-    message = await retry_until_available(
-        chat.get_message,
-        poll_id,
-        timeout=5.0,
-        retry_delay=0.5,
-    )
-
+    try:
+        message = await retry_until_available(
+            chat.get_message,
+            poll_id,
+            timeout=5.0,
+            retry_delay=0.5,
+        )
+    except TimeoutError:
+        console.log("[red]Failed when trying to retrieve poll message")
+        return
     # Get poll number of reactions in count order
     poll_votes = []
     for emoji, users in message.get_reactions().items():
@@ -94,6 +98,37 @@ async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
         msg_body,
         chat,
     )
+
+
+# Sorts notifications and executes suitable actions
+async def handle_notification(ryver: Ryver, notification: Notification, bot_chat: Chat):
+    # Check if it's a reminder notification
+    if notification.get_predicate() == "reminder_for":
+        # Check if it's a task reminder notification:
+        if notification.get_object_entity_type() == "Entity.Tasks.Task":
+            console.log("Task reminder received")
+            task = await Task.get_by_id(ryver, obj_id=notification.get_object_id())
+            # Check if it's a poll task
+            if task.get_subject().startswith("BrainBotPoll#"):
+                console.log(f"Poll {task.get_subject()} has ended")
+                # Poll tasks are saved as "BrainBotPoll#<poll_id>" so there's the poll id
+                poll_id = task.get_subject().replace("BrainBotPoll#", "")
+                # Show poll results
+                await show_poll_results(
+                    chat=bot_chat,
+                    poll_id=poll_id,
+                    bot_id=(await ryver.get_info())["me"]["id"],
+                )
+                # Delete poll task
+                console.log("Deleting poll reminder task")
+                await task.delete()
+                # Mark notification as read (Pyryver doesn't support removing notifications yet)
+                console.log("Marking reminder notification as read")
+                await notification.set_status(unread=False, new=False)
+
+    else:
+        # Discard irrelevant notifications
+        await notification.set_status(unread=False, new=False)
 
 
 # Cooldown utility
