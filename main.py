@@ -121,7 +121,7 @@ async def main():
                     console.log(f"Repeating {user.get_username()}")
                     if repeat_cooldown.run(username=user.get_username()):
                         await send_message(
-                            f"{msg_text}",
+                            f"{"#"+msg_text}",
                             bot_chat,
                             footer_end=f"This command was run by {user.get_username()}.",
                         )
