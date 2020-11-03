@@ -4,6 +4,7 @@ from os import getenv, system
 from random import choice
 from string import punctuation
 from sys import executable
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 from git import Repo
@@ -222,16 +223,14 @@ async def main():
                 # Random Emoticon
                 elif msg.text.lower().startswith("!emoticon"):
                     emoticons = [
-                        "`( ͡❛ ͜ʖ ͡❛)`",
-                        "`O_o`",
-                        "`（　0ゝ0 )`",
-                        "`(╯°□°）╯︵ ┻━┻`",
-                        "`:-)`",
-                        "`<(o_o<)`",
-                        "`(/^▽^)/`",
-                        "`〠_〠`",
-                        "`(￢‿￢ )`"
-                        "`ᕕ( ᐛ )ᕗ`"
+                        "( ͡❛ ͜ʖ ͡❛)",
+                        "O_o",
+                        "（　´_ゝ`）",
+                        "(╯°□°）╯︵ ┻━┻",
+                        ":-)",
+                        "<(o_o<)",
+                        "(/^▽^)/",
+                        "(•‿•)",
                     ]
                     console.log(f"Giving {user.get_username()} a random emoticon.")
                     await send_message(choice(emoticons), bot_chat)
@@ -255,6 +254,11 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to restart the bot"
                         )
+                # Render LaTeX
+                elif msg.text.lower().startswith("!latex"):
+                    await send_message(
+                        f"http://tex.z-dn.net/?f={quote(msg.text[7:])}", bot_chat
+                    )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
