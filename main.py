@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from os import getenv, system
 from random import choice
 from sys import executable
+from urllib.parse import quote
 
 from dotenv import load_dotenv
 from git import Repo
@@ -491,6 +492,11 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to restart the bot"
                         )
+                # Render LaTeX
+                elif msg.text.lower().startswith("!latex"):
+                    await send_message(
+                        f"[LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})", bot_chat
+                    )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
