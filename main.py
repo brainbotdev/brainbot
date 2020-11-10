@@ -495,7 +495,7 @@ async def main():
                 # Render LaTeX
                 elif msg.text.lower().startswith("!latex"):
                     await send_message(
-                        f"[LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})", bot_chat
+                        f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})", bot_chat
                     )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
