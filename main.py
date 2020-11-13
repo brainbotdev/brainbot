@@ -259,6 +259,53 @@ async def main():
                     await send_message(
                         f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})", bot_chat
                     )
+                    
+                # Evaluate and LaTeX combined
+                elif msg.text.lower().startswith("!evalatex"):
+                    elif msg.text.lower().startswith("!evaluate"):
+                    inputs = [value.strip() for value in msg.text[10:].split(";")]
+                    console.log(
+                        f"Evaluating {'; '.join(inputs)} for {user.get_username()}"
+                    )
+                    try:
+                        expression = math_parser.parse(inputs[0])
+                    except:
+                        console.log("[red]An error occurred during parsing")
+                        await send_message(
+                            "An error occurred while trying to parse your input.",
+                            bot_chat,
+                        )
+                        return
+
+                    variables = expression.variables()
+                    if len(inputs) - 1 != len(variables):
+                        console.log("[red]Incorrect number of variables provided")
+                        await send_message(
+                            f"You have not provided the correct number of variables. (Expected {len(variables)})",
+                            bot_chat,
+                        )
+                        return
+
+                    values = dict(
+                        zip(variables, [float(value) for value in inputs[1:]])
+                    )
+
+                    try:
+                        result = expression.evaluate(values)
+                    except:
+                        console.log("[red]An error occurred during evaluation")
+                        await send_message(
+                            "An error occurred while trying to evaluate your input.",
+                            bot_chat,
+                        )
+                        return
+                    
+                    
+                    await send_message(
+                        f"![LaTeX](http://tex.z-dn.net/?f={quote(result)})", bot_chat
+                    )
+                           
+                
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
