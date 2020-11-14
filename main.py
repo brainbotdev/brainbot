@@ -16,6 +16,11 @@ import urllib.request
 from bs4 import BeautifulSoup
 import re
 import random
+from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
+from pyryver.util import retry_until_available
+import urllib.request
+import urllib
+import requests
 
 
 
@@ -270,7 +275,7 @@ async def main():
 
 
 
-                if msg.text.lower().startswith ("!trivia"): # Checks if it contains special characters 
+                if msg.text.lower().startswith ("!trivia"): # Checks if the message has the command
                     
 
 
@@ -305,16 +310,19 @@ async def main():
                     
                     word=msg.text.lstrip("!define")
                     word= word.replace(' ', '')
-
                     url = "https://www.lexico.com/definition/"+ word +""
-                    htmlfile = urllib.request.urlopen(url)
-                    soup = BeautifulSoup(htmlfile, 'lxml')
+                    r = requests.head(url)
+                    if r.status_code ==404:
+                        await send_message("No Results",bot_chat)
+                    elif r.status_code == 200:
+                        htmlfile = urllib.request.urlopen(url)
+                        soup = BeautifulSoup(htmlfile, 'lxml')
 
-                    soup1 = soup.find(class_="ind")
-                    output=soup1.get_text()
+                        soup1 = soup.find(class_="ind")
+                        output=soup1.get_text()
 
 
-                    await send_message(str(output),bot_chat)
+                        await send_message(str(output),bot_chat)
 
                 elif msg.text.lower().startswith ("!synonyms"):
                     
@@ -323,16 +331,29 @@ async def main():
 
 
                     url = "https://www.lexico.com/synonym/"+ word +""
-                    htmlfile = urllib.request.urlopen(url)
-                    soup = BeautifulSoup(htmlfile, 'lxml')
+                    r = requests.head(url)
+                    if r.status_code ==404:
+                        await send_message("No Results Found",bot_chat)
+                    elif r.status_code == 200:    
+                        htmlfile = urllib.request.urlopen(url)
+                        soup = BeautifulSoup(htmlfile, 'lxml')
 
-                    soup1 = soup.find(class_="synList")
-                    text=soup1.get_text()
-                    output=text.strip("SYNONYMS")
+                        soup1 = soup.find(class_="synList")
+                        text=soup1.get_text()
+                        output=text.strip("SYNONYMS")
 
 
 
-                    await send_message(str(output),bot_chat)                                       
+                        await send_message(str(output),bot_chat)       
+
+                if msg.text.lower()=="!flipcoin":
+                    flip=random.randint(0,1)
+                    if flip==0:
+                        await send_message("Tails",bot_chat)
+
+                    elif flip==1:
+                        await send_message("Heads",bot_chat)
+                
                         
                         
                         
