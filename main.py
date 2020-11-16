@@ -16,6 +16,7 @@ import urllib.request
 from bs4 import BeautifulSoup
 import re
 import random
+from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 from pyryver.util import retry_until_available
 import urllib.request
 import urllib
@@ -294,7 +295,7 @@ async def main():
                     Afile = open("TriviaAnswers.txt","r")
                     message=msg.text.strip().strip("!response")
                     for line in Afile:
-                        if message in line:
+                        if message.lower() in line:
                             user = ryver.get_user(jid=msg.from_jid)
                             await send_message("Correct", bot_chat)
                             valid=True
