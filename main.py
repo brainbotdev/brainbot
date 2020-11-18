@@ -6,6 +6,9 @@ from string import punctuation
 from sys import executable
 from urllib.parse import quote
 
+from pymongo import MongoClient
+import datetime
+
 from dotenv import load_dotenv
 from git import Repo
 from googletrans import Translator
@@ -34,6 +37,10 @@ phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
 math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
+
+client = MongoClient("mongodb+srv://lukeg:Lpascal2007!@karmasystem.hgwxo.mongodb.net/<KarmaSystem>?retryWrites=true&w=majority")
+db = client.KarmaSystem_database
+collection = db.KarmaSystem_collection
 
 # Wrap in async function to use async context manager
 async def main():
@@ -128,6 +135,41 @@ async def main():
                         )
                     else:
                         console.log("Cancelled due to cooldown")
+                # Karma Command
+                if msg.text == ("!gift"):
+                    await chat.send_message("Oops, looks like you forgot to add a user.",bot_chat)
+                elif msg.text.startswith("!gift"):
+                 
+                 
+                  
+                msg.text = str(msg.text)
+                user = msg.text[6:]
+                 
+                check = collection.find_one({"author": user})
+                
+                if check != None:
+                  value = check["points"]
+                  value = str(value)
+                   
+                  check["points"] += 1
+                  collection.replace_one( 
+        {"author": user}, 
+        check
+        ) 
+                  await chat.send_message(user+" now has "+value+" points.",bot_chat)
+                   
+                   
+                else:
+                  
+                  await chat.send_message("This user isn't in the KarmaSystem database yet. Adding them now.",bot_chat)
+                  post = {"author": user,
+                  "points":1,
+                  "text": user+" now has points",
+                  "tags": ["mongodb", "python", "pymongo"],
+                  "date": datetime.datetime.utcnow()}
+                  post_id = collection.insert_one(post)
+                  await chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",bot_chat)
+ 
                 # Give the current version
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
