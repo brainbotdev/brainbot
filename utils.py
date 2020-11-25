@@ -3,6 +3,7 @@ from os import getenv
 from pathlib import Path
 from random import sample
 from time import time
+from typing import List
 
 from aiohttp import BasicAuth, ClientSession, ContentTypeError
 from pyryver.objects import Chat, Creator, Notification, Ryver, Task
@@ -63,7 +64,9 @@ async def remind_task(ryver: Ryver, task: Task, minutes: int):
 
 
 # Retrieves poll results and shows it on chat as a reply to the original poll message
-async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
+async def show_poll_results(
+    chat: Chat, inputs: List[str], reactions: List[str], poll_id: str, bot_id: str
+):
     console.log("Retrieving poll results")
     try:
         message = await retry_until_available(
@@ -73,8 +76,14 @@ async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
             retry_delay=0.5,
         )
     except TimeoutError:
-        console.log("[red]Failed when trying to retrieve poll message")
+        console.log("[red]Failed when trying to retrieve poll message for results")
         return
+
+    # Create association between options and their reactions
+    poll_options = {}
+    for i in range(0, len(reactions)):
+        poll_options[reactions[i]] = inputs[i + 1]
+
     # Get poll number of reactions in count order
     poll_votes = []
     for emoji, users in message.get_reactions().items():
@@ -85,15 +94,19 @@ async def show_poll_results(chat: Chat, poll_id: str, bot_id: str):
 
     most_voted = poll_votes[0][1]
 
-    # Reply on chat to show the results
-    # Send poll text as reply to original message
-    msg_body = ">{0}".format(message.get_body()).replace("\n", "\n>")
-    msg_body += "\n## Poll results:"
+    # Send results
+    msg_body = "\n## Poll results: {0}".format(inputs[0])
 
-    bold = ""
     for vote_reaction, vote_count in poll_votes:
         bold = "**" if vote_count == most_voted else ""
-        msg_body += "\n{2}:{0}: : {1}{2}".format(vote_reaction, vote_count, bold)
+        poll_option = (
+            " {0}".format(poll_options[vote_reaction])
+            if vote_reaction in poll_options
+            else ""
+        )
+        msg_body += "\n{3}{0} : :{1}:{2}{3}".format(
+            vote_count, vote_reaction, poll_option, bold
+        )
     await send_message(
         msg_body,
         chat,
@@ -116,6 +129,8 @@ async def handle_notification(ryver: Ryver, notification: Notification, bot_chat
                 # Show poll results
                 await show_poll_results(
                     chat=bot_chat,
+                    inputs=(task.get_body().split(";;")[0]).split(";"),
+                    reactions=(task.get_body().split(";;")[1]).split(";"),
                     poll_id=poll_id,
                     bot_id=(await ryver.get_info())["me"]["id"],
                 )

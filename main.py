@@ -13,7 +13,7 @@ from phonetic_alphabet import read as phonetics
 from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver, RyverWS
-from pyryver.objects import Notification, Task, TaskBoard
+from pyryver.objects import Notification, TaskBoard
 from pyryver.util import datetime_to_iso8601, retry_until_available
 from pyryver.ws_data import WSEventData
 from pytz import timezone
@@ -26,7 +26,6 @@ from utils import (
     handle_notification,
     remind_task,
     send_message,
-    show_poll_results,
 )
 
 __version__ = "1.2.0"
@@ -430,8 +429,13 @@ async def main():
 
                                     # Set ending timer using tasks
                                     if due_date is not None:
-                                        task_body = "{0};{1}".format(poll_id, inputs[0])
+                                        task_body = "{0}".format(inputs[0])
+                                        # Add options to task message for later parsing
                                         for i in inputs[1:]:
+                                            task_body += ";{0}".format(i)
+                                        # Add reactions used for later parsing
+                                        task_body += ";"
+                                        for i in poll_reactions[: (len(inputs) - 1)]:
                                             task_body += ";{0}".format(i)
                                         poll_task = await bot_task_board.create_task(
                                             f"BrainBotPoll#{poll_id}",
@@ -495,7 +499,8 @@ async def main():
                 # Render LaTeX
                 elif msg.text.lower().startswith("!latex"):
                     await send_message(
-                        f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})", bot_chat
+                        f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})",
+                        bot_chat,
                     )
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
