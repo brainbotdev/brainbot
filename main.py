@@ -45,6 +45,12 @@ client = MongoClient("mongodb+srv://lukeg:BrainBot@karmasystem.hgwxo.mongodb.net
 db = client.KarmaSystem_database
 collection = db.KarmaSystem_collection
 
+creator = Creator(
+    name="BrainBot | Happy Halloween!",
+    avatar="https://2.bp.blogspot.com/-uuIs6AxrKuQ/UvqYIdg8qTI/AAAAAAAAAMA/6UeTGIuxeWo/s1600/Fotolia_52196024_XS.jpg",
+)
+
+
 # Connect to Ryver (chat service)
 cooldownusers = []    
 def CooldownKarma(ryver,msg):
@@ -122,13 +128,12 @@ async def main():
                             f"[bold red]{user.get_username()} attempted to bypass the topic cooldown"
                         )
                 # Karma Points 
-                chat=ryver.get_groupchat(name="KarmaSystem")
                 cooldown = False
                 if msg.text == ("!gift"):
-                    await chat.send_message("Oops, looks like you forgot to add a user.",creator)
+                    await bot_chat.send_message("Oops, looks like you forgot to add a user.",creator)
                 elif msg.text.startswith("!gift"):
                     if Check(ryver,msg) == True:
-                        await chat.send_message("You are currently on cooldown. Please try again later.",creator)
+                        await bot_chat.send_message("You are currently on cooldown. Please try again later.",creator)
                 
                     else:
                         CooldownKarma(ryver,msg)
@@ -151,7 +156,7 @@ async def main():
                     
                     
                   
-                            await chat.send_message(user+" now has "+value+" points.",creator)
+                            await bot_chat.send_message(user+" now has "+value+" points.",creator)
                   
                   
                   
@@ -159,12 +164,12 @@ async def main():
                    
                         else:
                   
-                            await chat.send_message("This user isn't in the KarmaSystem database yet. Adding them now.",creator)
+                            await bot_chat.send_message("This user isn't in the KarmaSystem database yet. Adding them now.",creator)
                             post = {"author": user,
                             "points":1,
                             "text": user+" now has points"}
                             post_id = collection.insert_one(post)
-                            await chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",creator)
+                            await bot_chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",creator)
                  
                 if msg.text == "!leaderboard":
                     mydoc = collection.find().sort("points",-1)
@@ -175,9 +180,9 @@ async def main():
                   
                 
                     for item in mydoc:
-                        await chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
+                        await bot_chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
                         i +=1
-                        if i == 5:
+                        if i == 3:
                             break  
                             
                 # Get a conversation starter
