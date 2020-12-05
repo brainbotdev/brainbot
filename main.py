@@ -5,6 +5,12 @@ from random import choice
 from string import punctuation
 from sys import executable
 from urllib.parse import quote
+from pymongo import MongoClient
+from datetime import datetime
+
+import asyncio
+import pyryver 
+from pyryver.objects import Creator
 
 from dotenv import load_dotenv
 from git import Repo
@@ -35,6 +41,41 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
+client = MongoClient("mongodb+srv://lukeg:BrainBot@karmasystem.hgwxo.mongodb.net/KarmaSystem?retryWrites=true&w=majority")
+db = client.KarmaSystem_database
+collection = db.KarmaSystem_collection
+
+creator = Creator(
+    name="BrainBot | Happy Halloween!",
+    avatar="https://2.bp.blogspot.com/-uuIs6AxrKuQ/UvqYIdg8qTI/AAAAAAAAAMA/6UeTGIuxeWo/s1600/Fotolia_52196024_XS.jpg",
+)
+
+
+# Connect to Ryver (chat service)
+cooldownusers = []    
+def CooldownKarma(ryver,msg):
+              user = ryver.get_user(jid=msg.from_jid)
+              cooldownuser = user.get_username() 
+              time = datetime.now()
+              cooldownusers.append([cooldownuser, time])
+def Check(ryver,msg):
+              user = ryver.get_user(jid=msg.from_jid)
+              usertocheck = user.get_username()
+              
+              for item in cooldownusers:
+                if usertocheck in item:
+                  time = item[1]
+
+
+                  newtime = datetime.now()
+                  duration = (newtime-time)
+                
+                  if duration.seconds >= 1800:
+                    cooldownusers.remove(item)
+                    return False
+                  else:
+                    return True
+                
 # Wrap in async function to use async context manager
 async def main():
     # Log into Ryver with regular username/password
@@ -86,6 +127,64 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to bypass the topic cooldown"
                         )
+                # Karma Points 
+                cooldown = False
+                if msg.text == ("!gift"):
+                    await bot_chat.send_message("Oops, looks like you forgot to add a user.",creator)
+                elif msg.text.startswith("!gift"):
+                    if Check(ryver,msg) == True:
+                        await bot_chat.send_message("You are currently on cooldown. Please try again later.",creator)
+                
+                    else:
+                        CooldownKarma(ryver,msg)
+                
+                        msg.text = str(msg.text)
+                        user = msg.text[6:]
+                 
+                        check = collection.find_one({"author": user})
+                
+                        if check != None:
+                  
+                  
+                            value = check["points"] 
+                            value = str(value)              
+                            check["points"] += 1
+                            collection.replace_one( 
+                            {"author": user}, 
+                            check
+                            ) 
+                    
+                    
+                  
+                            await bot_chat.send_message(user+" now has "+value+" points.",creator)
+                  
+                  
+                  
+                   
+                   
+                        else:
+                  
+                            await bot_chat.send_message("This user isn't in the KarmaSystem database yet. Adding them now.",creator)
+                            post = {"author": user,
+                            "points":1,
+                            "text": user+" now has points"}
+                            post_id = collection.insert_one(post)
+                            await bot_chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",creator)
+                 
+                if msg.text == "!leaderboard":
+                    mydoc = collection.find().sort("points",-1)
+                
+                
+                
+                    i = 0    
+                  
+                
+                    for item in mydoc:
+                        await bot_chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
+                        i +=1
+                        if i == 3:
+                            break  
+                            
                 # Get a conversation starter
                 elif msg.text.lower().startswith("!topic"):
                     console.log(f"{user.get_username()} used the !topic command")
