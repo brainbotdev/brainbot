@@ -41,7 +41,7 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
-client = MongoClient("mongodb+srv://lukeg:lsMnEYjIZukf1bNy@karmasystem.hgwxo.mongodb.net/KarmaSystem?retryWrites=true&w=majority")
+client = MongoClient("mongodb+srv://lukeg:BrainBot@karmasystem.hgwxo.mongodb.net/KarmaSystem?retryWrites=true&w=majority")
 db = client.KarmaSystem_database
 collection = db.KarmaSystem_collection
 
@@ -121,16 +121,14 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to bypass the topic cooldown"
                         )
-                # Karma Points
-                
+                # Karma Points 
+                chat=ryver.get_groupchat(name="KarmaSystem")
                 cooldown = False
                 if msg.text == ("!gift"):
-                    await bot_chat.send_message("Oops, looks like you forgot to add a user.",creator)
-            
+                    await chat.send_message("Oops, looks like you forgot to add a user.",creator)
                 elif msg.text.startswith("!gift"):
-                
                     if Check(ryver,msg) == True:
-                        await bot_chat.send_message("You are currently on cooldown. Please try again later.",creator)
+                        await chat.send_message("You are currently on cooldown. Please try again later.",creator)
                 
                     else:
                         CooldownKarma(ryver,msg)
@@ -153,7 +151,7 @@ async def main():
                     
                     
                   
-                            await bot_chat.send_message(user+" now has "+value+" points.",creator)
+                            await chat.send_message(user+" now has "+value+" points.",creator)
                   
                   
                   
@@ -166,10 +164,9 @@ async def main():
                             "points":1,
                             "text": user+" now has points"}
                             post_id = collection.insert_one(post)
-                            await bot_chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",creator)
+                            await chat.send_message("Added to the database. You may now ask to add points to this user with !gift.",creator)
                  
                 if msg.text == "!leaderboard":
-                    
                     mydoc = collection.find().sort("points",-1)
                 
                 
@@ -178,20 +175,9 @@ async def main():
                   
                 
                     for item in mydoc:
-                        await bot_chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
+                        await chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
                         i +=1
                         if i == 5:
-                            break
-                if msg.text == "!orgleaderboard":
-                    mydoc2 = collection.find({"org":getenv(RYVER_ORG)})
-                    mydoc3 = collection.find().sort("points",-1)
-                    z = 0    
-                  
-                
-                    for item in mydoc:
-                        await bot_chat.send_message(str("**"+item["author"]+"**")+" - "+str(item["points"]),creator)
-                        z +=1
-                        if z == 5:
                             break  
                             
                 # Get a conversation starter
