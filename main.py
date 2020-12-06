@@ -5,7 +5,6 @@ from random import choice
 from string import punctuation
 from sys import executable
 from urllib.parse import quote
-from pymongo import MongoClient
 from datetime import datetime
 
 import asyncio
@@ -41,9 +40,6 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
-client = MongoClient("mongodb+srv://lukeg:BrainBot@karmasystem.hgwxo.mongodb.net/KarmaSystem?retryWrites=true&w=majority")
-db = client.KarmaSystem_database
-collection = db.KarmaSystem_collection
 
 creator = Creator(
     name="BrainBot | Happy Halloween!",
