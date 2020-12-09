@@ -1,5 +1,5 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-# BrainBot [![Version 1.2.0](https://img.shields.io/badge/version-1.2.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]
+# BrainBot [![Version 1.3.0](https://img.shields.io/badge/version-1.3.0-orange)][release] [![MIT License](https://img.shields.io/badge/license-MIT-green)][license] [![All Contributors](https://img.shields.io/badge/all_contributors-7-orange.svg)](#contributors-) [![GitHub stars](https://img.shields.io/github/stars/brainbotdev/brainbot?style=social)][stars]
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 **A simple and fun Ryver bot to liven up the conversation**
@@ -30,7 +30,7 @@ $ python main.py
 **Take a look at [the BrainBot wiki][wiki] to learn how to use the bot once it's up and running.**
 
 [license]: https://github.com/brainbotdev/brainbot/blob/master/LICENSE
-[release]: https://github.com/brainbotdev/brainbot/releases/tag/v1.2.0
+[release]: https://github.com/brainbotdev/brainbot/releases/tag/v1.3.0
 [stars]: https://github.com/brainbotdev/brainbot/stargazers
 [wiki]: https://github.com/brainbotdev/brainbot/wiki
 
