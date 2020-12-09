@@ -14,6 +14,8 @@ from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
+import qrcode
+
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -128,6 +130,10 @@ async def main():
                         )
                     else:
                         console.log("Cancelled due to cooldown")
+                # Generate a QR code
+                elif msg.text.lower().startswith("!qr"):
+                    qrcontent = msg.text[4:]
+                    qr = qrcode.make(qrcontent)
                 # Give the current version
                 elif msg.text.lower().startswith("!version"):
                     console.log(f"Telling {user.get_username()} the current version")
