@@ -281,7 +281,7 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
-                if msg.text.lower()=="!flipcoin":
+                if msg.text.lower()=="!coinflip":
                     flip=random.randint(0,1)
                     if flip==0:
                         await send_message("Tails",bot_chat)
