@@ -281,6 +281,13 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+                if msg.text.lower()=="!flipcoin":
+                    flip=random.randint(0,1)
+                    if flip==0:
+                        await send_message("Tails",bot_chat)
+
+                    elif flip==1:
+                        await send_message("Heads",bot_chat)
 
             @session.on_connection_loss
             async def _on_connection_loss():
