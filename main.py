@@ -14,6 +14,7 @@ from phonetic_alphabet.main import NonSupportedTextException
 from py_expression_eval import Parser
 from pyryver import Ryver
 from pyryver.util import retry_until_available
+from datetime import date
 
 from utils import Cooldown, TopicGenerator, bot_dir, console, send_message
 
@@ -281,6 +282,17 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+                        
+                if msg.text.lower().startswith("!timebetween"):
+                    values=msg.text.strip("!timebetween ")
+                    print(values)
+                    startvalue,endvalue=values.split(",")
+                    smonth,sday,syear=startvalue.split("/")
+                    emonth,eday,eyear=endvalue.split("/")
+                    startdate=date(int(syear) ,int(smonth) ,int(sday))
+                    enddate=date(int(eyear) ,int(emonth) , int(eday))
+                    delta = enddate - startdate
+                    await send_message(delta.days,bot_chat)
 
             @session.on_connection_loss
             async def _on_connection_loss():
