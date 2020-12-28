@@ -28,7 +28,7 @@ from utils import (
     send_message,
 )
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
@@ -131,6 +131,7 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to bypass the topic cooldown"
                         )
+                
                 # Get a conversation starter
                 elif msg.text.lower().startswith("!topic"):
                     console.log(f"{user.get_username()} used the !topic command")
@@ -161,13 +162,15 @@ async def main():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")
+                
                 # Repeat after the user
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
+                    updatedmsg_text = msg_text.replace("!","\!")
                     console.log(f"Repeating {user.get_username()}")
                     if repeat_cooldown.run(username=user.get_username()):
                         await send_message(
-                            f"{msg_text}",
+                            f"{updatedmsg_text}",
                             bot_chat,
                             footer_end=f"This command was run by {user.get_username()}.",
                         )
