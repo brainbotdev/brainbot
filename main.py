@@ -28,7 +28,7 @@ from utils import (
     send_message,
 )
 
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 
 load_dotenv(
     dotenv_path=bot_dir / ".env"
