@@ -3,3 +3,7 @@ tell_me_to=200
 topic=100
 repeat=45
 phon=45
+poll=100
+
+[misc]
+poll_reactions=zero;one;two;three;four;five;six;seven;eight;nine;keycap_ten
