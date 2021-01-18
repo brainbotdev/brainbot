@@ -1,4 +1,4 @@
-from asyncio.exceptions import TimeoutError
+from asyncio import TimeoutError
 from os import getenv
 from pathlib import Path
 from random import sample
