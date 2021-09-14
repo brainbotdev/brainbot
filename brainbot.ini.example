@@ -5,5 +5,8 @@ repeat=45
 phon=45
 poll=100
 
+[limits]
+max_dice=99
+
 [misc]
 poll_reactions=zero;one;two;three;four;five;six;seven;eight;nine;keycap_ten
