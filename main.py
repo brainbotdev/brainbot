@@ -296,8 +296,7 @@ async def main():
                     word= word.replace(' ', '')
                     url = "https://www.lexico.com/definition/"+ word +""
                     r = requests.head(url)
-                    if r.status_code ==404:
-                        await send_message("No Results",bot_chat)
+
                     elif r.status_code == 200:
                         htmlfile = urllib.request.urlopen(url)
                         soup = BeautifulSoup(htmlfile, 'lxml')
@@ -307,6 +306,8 @@ async def main():
 
 
                         await send_message(str(output),bot_chat)
+                    else:
+                        await send_message("No Results",bot_chat)
 
                 elif msg.text.lower().startswith ("!synonyms"):
 
@@ -316,19 +317,20 @@ async def main():
 
                     url = "https://www.lexico.com/synonym/"+ word +""
                     r = requests.head(url)
-                    if r.status_code ==404:
-                        await send_message("No Results Found",bot_chat)
-                    elif r.status_code == 200:    
+                       
+                    if r.status_code == 200:    
                         htmlfile = urllib.request.urlopen(url)
                         soup = BeautifulSoup(htmlfile, 'lxml')
 
-                        soup1 = soup.find(class_="synList")
+                        soup1 = soup.find("div",class_="synGroup")
                         text=soup1.get_text()
                         output=text.strip("SYNONYMS")
 
 
 
-                        await send_message(str(output),bot_chat)                                    
+                        await send_message(str(output),bot_chat)
+                    else:
+                        await send_message("No Results Found",bot_chat)
 
 
             @session.on_connection_loss
