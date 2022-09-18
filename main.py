@@ -3,6 +3,7 @@ from configparser import ConfigParser
 from datetime import datetime, timedelta
 from os import getenv, system
 from random import choice
+import random
 from sys import executable
 from urllib.parse import quote
 
@@ -27,6 +28,14 @@ from utils import (
     remind_task,
     send_message,
 )
+from pyryver.util import retry_until_available
+import urllib.request
+import urllib
+import requests
+import urllib.request
+from bs4 import BeautifulSoup
+import re
+import random
 
 __version__ = "1.4.1"
 
@@ -42,7 +51,9 @@ topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 repeat_cooldown = Cooldown(config.getint("cooldowns", "repeat", fallback=45))
 phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
 poll_cooldown = Cooldown(config.getint("cooldowns", "poll", fallback=100))
-
+trivia_cooldown=Cooldown(config.getint("cooldowns", "trivia", fallback=30))
+define_cooldown = Cooldown(config.getint("cooldowns", "define", fallback=45))
+synonyms_cooldown = Cooldown(config.getint("cooldowns", "synonyms", fallback=45))
 # Load poll reactions
 poll_reactions = config.get(
     "misc",
@@ -62,12 +73,12 @@ async def main():
         getenv("RYVER_ORG"), getenv("RYVER_USER"), getenv("RYVER_PASS")
     ) as ryver:
         console.log(
-            f"Connected to {ryver.org} Ryver org as user {getenv('RYVER_USER')}"
+            f"Connected to {getenv('RYVER_ORG')} Ryver org as user {getenv('RYVER_USER')}"
         )
 
         # Save the bot chat to compare with all incoming messages
         await ryver.load_chats()
-        console.log(f"Loaded {ryver.org} chats")
+        console.log(f"Loaded {getenv('RYVER_ORG')} chats")
 
         bot_chat = ryver.get_chat(id=int(getenv("RYVER_CHAT")))
 
@@ -285,8 +296,8 @@ async def main():
                     console.log(f"Giving {user.get_username()} a random emoticon.")
                     await send_message(choice(emoticons), bot_chat)
                 # Create Poll
-                elif msg.text.lower().startswith("!poll"):
-                    """
+                elif msg.text.lower()==("!poll"):
+                    await send_message(f"""
                     Command usage:  !poll [t=due_time;]<poll_title>;<option1>;<option2>...
                                     !poll [d=due_date;]<poll_title>;<option1>;<option2>...
                                     !poll [m=minutes;]<poll_title>;<option1>;<option2>...
@@ -304,7 +315,8 @@ async def main():
 
                     If due date/time is entered a task and a reminder will be created inside bot's personal
                     task board in order to make ryver take care of timers instead of the bot itself.
-                    """
+                    """,bot_chat)
+                elif msg.text.lower().startswith("!poll"):
                     if poll_cooldown.run(username=user.get_username()):
                         # Get potential arguments
                         inputs = [value.strip() for value in msg.text[6:].split(";")]
@@ -524,6 +536,234 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+
+                file=open("/home/pi/Downloads/brainbot-master/TriviaQuestions.txt","r", encoding='utf-8')
+                record=file.readlines()
+                file.close()
+                QuestionsArray=[]
+                AnswersArray=[]
+                for value in record:
+                    question,answer=value.strip("\n").split(",")
+                    answer=answer.lower()
+                    QuestionsArray.append(question)
+                    AnswersArray.append(answer)
+                
+                
+                valid=True
+                if msg.text.lower().startswith("!trivia bypass"):
+                    if user in bot_admins:
+                        console.log(
+                            f"{user.get_username()} used the !trivia command [bold red](COOLDOWN BYPASS)"
+                        )
+
+                        trivia_cooldown.run(bypass=True)
+
+                        
+                        global Rinteger
+                        Rinteger=random.randint(0,len(QuestionsArray)-1)
+
+
+                        await send_message(QuestionsArray[Rinteger],bot_chat)
+
+                    else:
+                        console.log(
+                            f"[bold red]{user.get_username()} attempted to bypass the trivia cooldown"
+                        )
+                
+                elif msg.text.lower().startswith("!trivia"):
+                    if trivia_cooldown.run():
+                        
+                    
+                        #global Rinteger
+                        Rinteger=random.randint(0,len(QuestionsArray)-1)
+
+
+                        await send_message(QuestionsArray[Rinteger],bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+                elif msg.text.lower().startswith("!response") and valid==True:
+                    
+
+                    response=msg.text[10:]
+                    #response=response.replace(" ","")
+                    response=response.lower()
+
+                    if response == AnswersArray[Rinteger].lower():
+                        await send_message(f"Correct @{user.get_username()}! The answer was {AnswersArray[Rinteger]}",bot_chat)
+                    else:
+                        await send_message(f"Not quite @{user.get_username()}, try again.",bot_chat)
+
+                elif msg.text.lower().startswith("!answer"):
+                    await send_message(f"The answer is {AnswersArray[Rinteger]}, better luck next time.",bot_chat)
+                        
+                                           
+                if msg.text.lower()==("!define bypass"):
+                    if user in bot_admins:
+                        console.log(f"{user.get_username()} used the !define command [bold red](COOLDOWN BYPASS)")
+
+                        define_cooldown.run(bypass=True)
+                        word=msg.text.lower().lstrip("!define bypass")
+                        word= word.replace(' ', '')
+                        url = "https://www.merriam-webster.com/dictionary/"+ word +""
+                        r = requests.head(url)
+
+                        if r.status_code == 200:
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find("span",class_="dtText")
+                            output=soup1.get_text()
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            
+                            await send_message("No Results Found",bot_chat)
+                                
+                elif msg.text.lower().startswith ("!define"):
+                    if define_cooldown.run():
+
+                        word=msg.text.lower().lstrip("!define")
+                        word= word.replace(' ', '')
+                        url = "https://www.merriam-webster.com/dictionary/"+ word +""
+                        r = requests.head(url)
+
+                        if r.status_code == 200:
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find("span",class_="dtText")
+                            output=soup1.get_text()
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            
+                            await send_message("No Results Found",bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+ 
+ 
+                if msg.text.lower()==("!synonyms bypass"):
+                    if user in bot_admins:
+                        console.log(
+                            f"{user.get_username()} used the !synonyms command [bold red](COOLDOWN BYPASS)"
+                        )
+                        synonyms_cooldown.run(bypass=True)
+                        word=msg.text.lstrip("!synonyms bypass")
+                        word= word.replace(' ', '')
+
+
+                        url = "https://www.merriam-webster.com/thesaurus/"+ word +""
+                        r = requests.head(url)
+                           
+                        if r.status_code == 200:    
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find(class_="mw-list")
+                            text=soup1.get_text()
+                            output=text.strip("SYNONYMS")
+
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            await send_message("No Results Found",bot_chat)
+
+                        trivia_cooldown.run(bypass=True)
+                elif msg.text.lower().startswith ("!synonyms"):
+                    if synonyms_cooldown.run():
+
+                        word=msg.text.lstrip("!synonyms bypass")
+                        word= word.replace(' ', '')
+
+
+                        url = "https://www.merriam-webster.com/thesaurus/"+ word +""
+                        r = requests.head(url)
+                           
+                        if r.status_code == 200:    
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find(class_="mw-list")
+                            text=soup1.get_text()
+                            output=text.strip("SYNONYMS")
+
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            await send_message("No Results Found",bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+
+                if msg.text.lower()=="!coinflip":
+                    flip=random.randint(0,1)
+                    if flip==0:
+                        await send_message("Tails",bot_chat)
+
+                    elif flip==1:
+                        await send_message("Heads",bot_chat)
+                if msg.text.lower().startswith("!rickroll"):
+                    msg.text=msg.text.lstrip("!rickroll ")
+                    if "http" in msg.text:
+                       
+                        url= msg.text
+                       
+                        headers = {'User-Agent': '<yourUserAgent>'}
+                        #Keywords
+                        keywords = ['Rick','Astley','Rick Astley - Never Gonna Give You Up (Video)','Official Rick Astley','Never gonna give you up','Never gonna let you down','Never gonna run around and desert you','Never gonna make you cry','Never gonna say goodbye','Never gonna tell a lie and hurt you','Stick Bugged','Get Stick Bugged Lol']
+                        response = requests.get(url, headers=headers)
+
+                        found_keywords = 0
+                        #checks to see if
+                        for el in keywords:
+                            if el.lower() in str(response.content).lower():
+                                await send_message(f"Looks like a troll link!",bot_chat)
+                                break
+                        for el in keywords:
+                            if el.lower() in str(response.content).lower():
+                                found_keywords = found_keywords+1
+
+                        if found_keywords == 0:
+                            await send_message(f"You can be sure that this isn't a troll link!",bot_chat)
+
+                        
+                        
 
             @session.on_event(RyverWS.EVENT_ALL)
             async def _on_event(event: WSEventData):
