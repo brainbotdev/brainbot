@@ -10,6 +10,9 @@ from pyryver.objects import Chat, Creator, Notification, Ryver, Task
 from pyryver.util import retry_until_available
 from rich.console import Console
 
+from PIL import Image, ImageDraw, ImageFont
+import textwrap
+
 # Get a console to log to
 console = Console()
 
@@ -19,7 +22,7 @@ bot_dir = Path(__file__).parent.absolute()
 # Creator to show the bot as... a bot
 creator = Creator(
     name="BrainBot",
-    avatar="https://2.bp.blogspot.com/-uuIs6AxrKuQ/UvqYIdg8qTI/AAAAAAAAAMA/6UeTGIuxeWo/s1600/Fotolia_52196024_XS.jpg",
+    avatar="https://i.imgur.com/VviY54F.png",
 )
 
 # Message sender utility to add a bot notice footer and use the bot's creator
@@ -32,7 +35,6 @@ async def send_message(message, chat, footer_end=""):
         f"{message}\n\n{footer}",
         creator=creator,
     )
-
 
 # Task reminder creator
 async def remind_task(ryver: Ryver, task: Task, minutes: int):
@@ -161,6 +163,21 @@ class Cooldown:
         else:
             return False
 
+class ImageGenerator:
+    def __init__(self):
+        self.src = "blackTemplate.png"
+
+    def createImage(self, text, filename):
+        img = Image.open(self.src)
+
+        text = textwrap.wrap(text, width=17) 
+        font = ImageFont.truetype("Helvetica-Bold.ttf", size=120) 
+        offset = 0 
+        for line in text: 
+            ImageDraw.Draw(img).text((160, 160 + offset), line, font=font) 
+            offset += 140
+
+        img.save(filename)
 
 # The main topic engine
 class TopicGenerator:
