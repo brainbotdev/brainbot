@@ -39,8 +39,6 @@ import re
 import random
 
 import json
-import asyncio
-from asyncio.exceptions import TimeoutError
 
 __version__ = "1.4.1"
 
@@ -855,7 +853,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 1):  #change this before release
+                        if(len(game['players']) >= 3):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
