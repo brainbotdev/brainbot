@@ -1,7 +1,7 @@
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from datetime import datetime, timedelta
-from os import getenv, system
+from os import getenv, system, path
 from random import choice
 import random
 from sys import executable
@@ -27,6 +27,7 @@ from utils import (
     handle_notification,
     remind_task,
     send_message,
+    ImageGenerator
 )
 from pyryver.util import retry_until_available
 import urllib.request
@@ -36,6 +37,10 @@ import urllib.request
 from bs4 import BeautifulSoup
 import re
 import random
+
+import json
+import asyncio
+from asyncio.exceptions import TimeoutError
 
 __version__ = "1.4.1"
 
@@ -65,6 +70,17 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
+cah = json.load(open('CAH.json'))[0]
+game = {
+    'running': False,
+    'waitingForJoin': False,
+    'readCommands': False,
+    'players': [],
+    'playing': [],
+    'roundsLeft': 2,
+    'selectionTime': False,
+    'cardQueen': '' #username of card queen
+}
 
 # Wrap in async function to use async context manager
 async def main():
@@ -116,6 +132,7 @@ async def main():
             console.log("In live session")
 
             @session.on_chat
+
             async def _on_chat(msg):
                 # Stop if message wasn't sent to the bot chat
                 if msg.to_jid != bot_chat.get_jid():
@@ -517,6 +534,8 @@ async def main():
                         f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})",
                         bot_chat,
                     )
+
+
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
@@ -537,7 +556,7 @@ async def main():
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
 
-                file=open("/home/pi/Downloads/brainbot-master/TriviaQuestions.txt","r", encoding='utf-8')
+                file=open("TriviaQuestions.txt","r", encoding='utf-8')
                 record=file.readlines()
                 file.close()
                 QuestionsArray=[]
@@ -712,8 +731,6 @@ async def main():
                             text=soup1.get_text()
                             output=text.strip("SYNONYMS")
 
-
-
                             await send_message(str(output),bot_chat)
                         else:
                             await send_message("No Results Found",bot_chat)
@@ -761,9 +778,174 @@ async def main():
 
                         if found_keywords == 0:
                             await send_message(f"You can be sure that this isn't a troll link!",bot_chat)
+                
+                #cards against humanity
+                async def gameStart():
+                    imgGen = ImageGenerator()
+                    randomQ = random.choice(cah['black'])['text']
+                    imgGen.createImage(randomQ, "black.png")
 
+                    fileCard = await ryver.upload_file("black", open("black.png", "rb"), "png")
+
+                    console.log(game)
+                    game['playing'] = list(game['players']) 
+                    queen = game['playing'].pop(random.randint( 0,len(game['playing'])-1 ))
+                    console.log(game)
+
+                    for player in game['playing']:
+                        playerObj = ryver.get_user(username=player['name'])
+
+                        cardList = ''
+                        for index, card in enumerate(player['cards']): 
+                            cardList += f"{str(index+1)}. {card} \n"
+                        await send_message(
+                            f"**This is your current set of cards:**\n {cardList}",
+                            ryver.get_chat(id=playerObj.get_id())
+                        )
+
+                    await send_message(
+                        f"![{randomQ}]({fileCard.get_content_url()})",
+                        bot_chat
+                    )
+
+                    game['cardQueen'] = queen
+                    await send_message(
+                        f"@{queen['name']} is the judge for this round.",
+                        bot_chat
+                    )
+                    game['running'] = True
+                    game['roundsLeft'] -= 1
+                
+                if msg.text.lower().startswith("!cah"):
+                    roundCount = int(msg.text.lstrip("!cah ").strip())
+                    await send_message(
+                        f"{user.get_username()} is starting a game of Cards Against Humanity, send `!join` in this chat to join!",
+                        bot_chat
+                    )
+
+                    global game
+                    game['players'].append({
+                        'name': user.get_username(),
+                        'points': 0,
+                        'cards': [],
+                        'selectedCard': ''
+                    })
+                    
+                    game['roundsLeft'] = roundCount
+                    game['readCommands'] = True
+                    game['waitingForJoin'] = True
+
+                if(game['readCommands']):
+                    if(game['waitingForJoin'] and msg.text.lower().startswith("!join")):
+                        if(next((player for player in game['players'] if player['name'] == user.get_username()), None)):
+                            await send_message(
+                                f"@{user.get_username()} You are in the game already.",
+                                bot_chat
+                            )
+                        else:
+                            game['players'].append({
+                                'name': user.get_username(),
+                                'points': 0,
+                                'cards': [],
+                                'selectedCard': ''
+                            })
+                            await send_message(
+                                f"Welcome to the game @{user.get_username()}!",
+                                bot_chat
+                            )
+
+                    if((not game['running']) and msg.text.lower().startswith("!start")):
+                        if(len(game['players']) >= 1):  #change this before release
+                            game['waitingForJoin'] = False
+                            for player in game['players']:
+                                whiteCards = []
+                                
+                                #distribute starting cards
+                                for a in range(10):
+                                    whiteCards.append(random.choice(cah['white'])['text'])
+                                player['cards'] = whiteCards
+
+                            await gameStart()
+
+
+                        else:
+                            await send_message(
+                                "Not enough players",
+                                bot_chat
+                            )
+                    else:
+                    #in-game commands here
+
+                        if(msg.text.lower().startswith("!card")):
+                            selected = msg.text.lstrip("!card ").strip()
+                            thisUser = ryver.get_user(jid=msg.from_jid)
+                            userInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
+
+                            if(userInfo):
+                                selectedCard = userInfo['cards'].pop(int(selected)-1)
+                                userInfo['cards'].append(random.choice(cah['white'])['text'])
+
+                                await send_message(
+                                    f"**You Selected the card:** {selectedCard}",
+                                    ryver.get_chat(id=thisUser.get_id())
+                                )
+                                await send_message(
+                                    f"@{user.get_username()} has selected their card!",
+                                    bot_chat
+                                )
+                                userInfo['selectedCard'] = selectedCard
+
+                                if(not next((player for player in game['playing'] if not player['selectedCard']), None)):
+                                    allCards = ''
+                                    for index, player in enumerate(game['playing']): 
+                                        allCards += f"{index+1}. {player['selectedCard']} \n"
+                                    await send_message(
+                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n {allCards}",
+                                        bot_chat
+                                    )
+                                    game['selectionTime'] = True
+                            else:
+                                await send_message(
+                                    "You are not in this game",
+                                    ryver.get_chat(id=thisUser.get_id())
+                                )
+                                
+
+                        elif(msg.text.lower().startswith("!pick") and game['selectionTime']):
+                            selection = int(msg.text.lstrip("!pick ").strip())
+                            winner = game['playing'][selection-1]
+                            winner['points'] += 1
+                            await send_message(
+                                f"@{winner['name']} won the round!",
+                                bot_chat
+                            )
+                            game['running'] = False
+                            if(game['roundsLeft'] > 0):
+                                await gameStart()
+
+
+                        elif(msg.text.lower().startswith("!scores")):
+                            userScore = ''
+                            for player in game['players']:
+                                userScore += f"{player['name']} : {str(player['points'])} \n"
+                            await send_message(
+                                f"**Leaderboard:** \n {userScore}",
+                                bot_chat
+                            )
                         
-                        
+
+                        elif(msg.text.lower().startswith("!end")):
+                            game = {
+                            'running': False,
+                            'waitingForJoin': False,
+                            'readCommands': False,
+                            'players': [],
+                            'cardQueen': '' #username of card queen
+                            }
+                            await send_message(
+                                f"@{user.get_username()} ended the game.",
+                                bot_chat
+                            )
 
             @session.on_event(RyverWS.EVENT_ALL)
             async def _on_event(event: WSEventData):
