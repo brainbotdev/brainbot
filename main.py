@@ -859,7 +859,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 2):
+                        if(len(game['players']) >= 3):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
