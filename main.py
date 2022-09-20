@@ -859,7 +859,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 3):
+                        if(len(game['players']) >= 2):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
@@ -924,8 +924,24 @@ async def main():
                                 bot_chat
                             )
                             game['running'] = False
+
+                            userScore = ''
+                            for player in game['players']:
+                                userScore += f"@{player['name']} : {str(player['points'])} \n"
+
                             if(game['roundsLeft'] > 0):
+                                await send_message(
+                                    f"**Current Points:** \n {userScore} ",
+                                    bot_chat
+                                )
                                 await gameStart()
+                            else:
+                                #rounds finished
+                
+                                await send_message(
+                                    f"**The game has ended.** \n Scores: \n {userScore} ",
+                                    bot_chat
+                                )
 
 
                         elif(msg.text.lower().startswith("!scores")):
