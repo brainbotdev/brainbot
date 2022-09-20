@@ -122,10 +122,6 @@
   "pack": 0
   },
   {
-  "text": "A hot air balloon powered by fart gas.",
-  "pack": 0
-  },
-  {
   "text": "A hundred screaming monkeys.",
   "pack": 0
   },
@@ -202,10 +198,6 @@
   "pack": 0
   },
   {
-  "text": "Barfing into a popcorn bucket.",
-  "pack": 0
-  },
-  {
   "text": "Batman.",
   "pack": 0
   },
@@ -263,10 +255,6 @@
   },
   {
   "text": "Biting a rich person.",
-  "pack": 0
-  },
-  {
-  "text": "Blasting farts in the powder room.",
   "pack": 0
   },
   {
@@ -346,10 +334,6 @@
   "pack": 0
   },
   {
-  "text": "Climbing into a cow's butt.",
-  "pack": 0
-  },
-  {
   "text": "Coffee.",
   "pack": 0
   },
@@ -359,14 +343,6 @@
   },
   {
   "text": "Completely drunk organizers.",
-  "pack": 0
-  },
-  {
-  "text": "Covering myself with ketchup and mustard because I am a hot dog.",
-  "pack": 0
-  },
-  {
-  "text": "Crab-walking from the toilet to get more toilet paper.",
   "pack": 0
   },
   {
@@ -399,10 +375,6 @@
   },
   {
   "text": "Drinking gasoline to see what it tastes like.",
-  "pack": 0
-  },
-  {
-  "text": "Drinking out of the toilet and eating rubbish.",
   "pack": 0
   },
   {
@@ -458,15 +430,7 @@
   "pack": 0
   },
   {
-  "text": "Farting, barfing, and passing out.",
-  "pack": 0
-  },
-  {
   "text": "Fat stacks of cash.",
-  "pack": 0
-  },
-  {
-  "text": "Father's forbidden chocolates.",
   "pack": 0
   },
   {
@@ -479,10 +443,6 @@
   },
   {
   "text": "Finger teeth.",
-  "pack": 0
-  },
-  {
-  "text": "Fire farts.",
   "pack": 0
   },
   {
@@ -499,10 +459,6 @@
   },
   {
   "text": "Fortnite.",
-  "pack": 0
-  },
-  {
-  "text": "Freeing a fart from its butt prison.",
   "pack": 0
   },
   {
@@ -542,11 +498,7 @@
   "pack": 0
   },
   {
-  "text": "Getting struck in the toilet.",
-  "pack": 0
-  },
-  {
-  "text": "Giggling and farting and slurping milkshakes.",
+  "text": "Getting stuck in the toilet.",
   "pack": 0
   },
   {
@@ -695,10 +647,6 @@
   },
   {
   "text": "Many wolves.",
-  "pack": 0
-  },
-  {
-  "text": "Martin Luther King Jr.",
   "pack": 0
   },
   {
@@ -854,10 +802,6 @@
   "pack": 0
   },
   {
-  "text": "Rated-R stuff.",
-  "pack": 0
-  },
-  {
   "text": "Respecting personal boundaries.",
   "pack": 0
   },
@@ -882,19 +826,11 @@
   "pack": 0
   },
   {
-  "text": "Saving up my boogers for ten years and then building the world's largest booger.",
-  "pack": 0
-  },
-  {
   "text": "Screaming and screaming and never waking up.",
   "pack": 0
   },
   {
   "text": "Screaming into a can of Pringles.",
-  "pack": 0
-  },
-  {
-  "text": "Screaming the F-word.",
   "pack": 0
   },
   {
@@ -1214,10 +1150,6 @@
   "pack": 1
   },
   {
-  "text": "A didgeridildo.",
-  "pack": 1
-  },
-  {
   "text": "A disappointing birthday party.",
   "pack": 1
   },
@@ -1231,10 +1163,6 @@
   },
   {
   "text": "A fanny fart.",
-  "pack": 1
-  },
-  {
-  "text": "A fart so powerful that it wakes the giants from their thousand-year slumber.",
   "pack": 1
   },
   {
@@ -1266,19 +1194,11 @@
   "pack": 1
   },
   {
-  "text": "A hairless little shitstain named Callou.",
-  "pack": 1
-  },
-  {
   "text": "A Halal Snack Pack.",
   "pack": 1
   },
   {
   "text": "A hen night in Slough.",
-  "pack": 1
-  },
-  {
-  "text": "A homoerotic volleyball montage.",
   "pack": 1
   },
   {
@@ -1347,10 +1267,6 @@
   },
   {
   "text": "A moment of silence.",
-  "pack": 1
-  },
-  {
-  "text": "A monkey smoking a cigar.",
   "pack": 1
   },
   {
@@ -1718,10 +1634,6 @@
   "pack": 1
   },
   {
-  "text": "Being white.",
-  "pack": 1
-  },
-  {
   "text": "Benedict Cumberbatch.",
   "pack": 1
   },
@@ -1878,10 +1790,6 @@
   "pack": 1
   },
   {
-  "text": "Civilian casualties.",
-  "pack": 1
-  },
-  {
   "text": "Classist undertones.",
   "pack": 1
   },
@@ -1899,10 +1807,6 @@
   },
   {
   "text": "Consultants.",
-  "pack": 1
-  },
-  {
-  "text": "Contagious face cancer.",
   "pack": 1
   },
   {
@@ -2071,10 +1975,6 @@
   },
   {
   "text": "Eastern European Turbo-Folk music.",
-  "pack": 1
-  },
-  {
-  "text": "Eating an albino.",
   "pack": 1
   },
   {
@@ -2929,11 +2829,6 @@
   "pack": 1
   },
   {
-  "text": "Having problems with _? Try _!",
-  "pick": 2,
-  "pack": 1
-  },
-  {
   "text": "Here is the church\nHere is the steeple\nOpen the doors\nAnd there is _.",
   "pick": 1,
   "pack": 1
@@ -2945,16 +2840,6 @@
   },
   {
   "text": "Hey guys, welcome to Chili's! Would you like to start the night off right with _?",
-  "pick": 1,
-  "pack": 1
-  },
-  {
-  "text": "Hey guys, welcome to Sizzler! Would you like to start the night off right with _?",
-  "pick": 1,
-  "pack": 1
-  },
-  {
-  "text": "Hey guys, welcome to TGIF! Would you like to start the night off right with _?",
   "pick": 1,
   "pack": 1
   },
@@ -3105,11 +2990,6 @@
   },
   {
   "text": "In your Best-Man speech, I'd talk about when we found ourselves _.",
-  "pick": 1,
-  "pack": 1
-  },
-  {
-  "text": "Instead of coal, Father Christmas now gives the bad children _.",
   "pick": 1,
   "pack": 1
   },

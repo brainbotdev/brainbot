@@ -815,23 +815,29 @@ async def main():
                     game['roundsLeft'] -= 1
                 
                 if msg.text.lower().startswith("!cah"):
-                    roundCount = int(msg.text.lstrip("!cah ").strip())
-                    await send_message(
-                        f"{user.get_username()} is starting a game of Cards Against Humanity, send `!join` in this chat to join!",
-                        bot_chat
-                    )
+                    roundCount = msg.text.lstrip("!cah ").strip()
+                    if(roundCount):
+                        await send_message(
+                            f"{user.get_username()} is starting a game of Cards Against Humanity, send `!join` in this chat to join!",
+                            bot_chat
+                        )
 
-                    global game
-                    game['players'].append({
-                        'name': user.get_username(),
-                        'points': 0,
-                        'cards': [],
-                        'selectedCard': ''
-                    })
-                    
-                    game['roundsLeft'] = roundCount
-                    game['readCommands'] = True
-                    game['waitingForJoin'] = True
+                        global game
+                        game['players'].append({
+                            'name': user.get_username(),
+                            'points': 0,
+                            'cards': [],
+                            'selectedCard': ''
+                        })
+                        
+                        game['roundsLeft'] = int(roundCount)
+                        game['readCommands'] = True
+                        game['waitingForJoin'] = True
+                    else:
+                        await send_message(
+                            "Missing Arguments: Must add the number of rounds after command",
+                            bot_chat
+                        )
 
                 if(game['readCommands']):
                     if(game['waitingForJoin'] and msg.text.lower().startswith("!join")):
@@ -853,7 +859,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 3):
+                        if(len(game['players']) >= 2):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
@@ -888,7 +894,7 @@ async def main():
                                     ryver.get_chat(id=thisUser.get_id())
                                 )
                                 await send_message(
-                                    f"@{user.get_username()} has selected their card!",
+                                    f"@{user.get_username()} has selected a card!",
                                     bot_chat
                                 )
                                 userInfo['selectedCard'] = selectedCard
@@ -918,8 +924,24 @@ async def main():
                                 bot_chat
                             )
                             game['running'] = False
+
+                            userScore = ''
+                            for player in game['players']:
+                                userScore += f"@{player['name']} : {str(player['points'])} \n"
+
                             if(game['roundsLeft'] > 0):
+                                await send_message(
+                                    f"**Current Points:** \n {userScore} ",
+                                    bot_chat
+                                )
                                 await gameStart()
+                            else:
+                                #rounds finished
+                
+                                await send_message(
+                                    f"**The game has ended.** \n Scores: \n {userScore} ",
+                                    bot_chat
+                                )
 
 
                         elif(msg.text.lower().startswith("!scores")):
@@ -927,7 +949,7 @@ async def main():
                             for player in game['players']:
                                 userScore += f"{player['name']} : {str(player['points'])} \n"
                             await send_message(
-                                f"**Leaderboard:** \n {userScore}",
+                                f"**Leaderboard:** \n \n {userScore}",
                                 bot_chat
                             )
                         
@@ -937,6 +959,7 @@ async def main():
                             'running': False,
                             'waitingForJoin': False,
                             'readCommands': False,
+                            'selectionTime': False,
                             'players': [],
                             'cardQueen': '' #username of card queen
                             }
