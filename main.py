@@ -894,7 +894,7 @@ async def main():
                                     ryver.get_chat(id=thisUser.get_id())
                                 )
                                 await send_message(
-                                    f"@{user.get_username()} has selected their card!",
+                                    f"@{user.get_username()} has selected a card!",
                                     bot_chat
                                 )
                                 userInfo['selectedCard'] = selectedCard
