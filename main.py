@@ -942,6 +942,14 @@ async def main():
                                     f"**The game has ended.** \n Scores: \n {userScore} ",
                                     bot_chat
                                 )
+                                game = {
+                                    'running': False,
+                                    'waitingForJoin': False,
+                                    'readCommands': False,
+                                    'selectionTime': False,
+                                    'players': [],
+                                    'cardQueen': '' #username of card queen
+                                }
 
 
 
@@ -953,14 +961,6 @@ async def main():
                                 f"**Leaderboard:** \n \n {userScore}",
                                 bot_chat
                             )
-                            game = {
-                                'running': False,
-                                'waitingForJoin': False,
-                                'readCommands': False,
-                                'selectionTime': False,
-                                'players': [],
-                                'cardQueen': '' #username of card queen
-                            }
                         
 
                         elif(msg.text.lower().startswith("!end")):
