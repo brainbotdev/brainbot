@@ -859,7 +859,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 2):
+                        if(len(game['players']) >= 3):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
@@ -944,6 +944,7 @@ async def main():
                                 )
 
 
+
                         elif(msg.text.lower().startswith("!scores")):
                             userScore = ''
                             for player in game['players']:
@@ -952,6 +953,14 @@ async def main():
                                 f"**Leaderboard:** \n \n {userScore}",
                                 bot_chat
                             )
+                            game = {
+                                'running': False,
+                                'waitingForJoin': False,
+                                'readCommands': False,
+                                'selectionTime': False,
+                                'players': [],
+                                'cardQueen': '' #username of card queen
+                            }
                         
 
                         elif(msg.text.lower().startswith("!end")):
