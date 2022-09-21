@@ -779,16 +779,21 @@ async def main():
                 
                 #cards against humanity
                 async def gameStart():
+                    game['selectionTime'] = False
+
                     imgGen = ImageGenerator()
+                    global randomQ
                     randomQ = random.choice(cah['black'])['text']
                     imgGen.createImage(randomQ, "black.png")
 
                     fileCard = await ryver.upload_file("black", open("black.png", "rb"), "png")
 
-                    console.log(game)
+                    for player in game['players']:
+                        player['selectedCard'] = ''
+                    
                     game['playing'] = list(game['players']) 
+
                     queen = game['playing'].pop(random.randint( 0,len(game['playing'])-1 ))
-                    console.log(game)
 
                     for player in game['playing']:
                         playerObj = ryver.get_user(username=player['name'])
@@ -859,7 +864,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 3):
+                        if(len(game['players']) >= 2):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
@@ -883,7 +888,8 @@ async def main():
                         if(msg.text.lower().startswith("!card")):
                             selected = msg.text.lstrip("!card ").strip()
                             thisUser = ryver.get_user(jid=msg.from_jid)
-                            userInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
+                            userInfo = next((player for player in game['players'] if player['name'] == user.get_username()), None)
+                            playerInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
 
                             if(userInfo):
                                 selectedCard = userInfo['cards'].pop(int(selected)-1)
@@ -897,14 +903,14 @@ async def main():
                                     f"@{user.get_username()} has selected a card!",
                                     bot_chat
                                 )
-                                userInfo['selectedCard'] = selectedCard
+                                playerInfo['selectedCard'] = selectedCard
 
                                 if(not next((player for player in game['playing'] if not player['selectedCard']), None)):
                                     allCards = ''
                                     for index, player in enumerate(game['playing']): 
                                         allCards += f"{index+1}. {player['selectedCard']} \n"
                                     await send_message(
-                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n {allCards}",
+                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n **{randomQ}** \n {allCards}",
                                         bot_chat
                                     )
                                     game['selectionTime'] = True
