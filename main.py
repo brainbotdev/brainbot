@@ -793,7 +793,7 @@ async def main():
                     
                     game['playing'] = list(game['players']) 
 
-                    queen = game['playing'].pop(random.randint( 0,len(game['playing'])-1 ))
+                    queen = game['playing'].pop(random.randint( 0, len(game['playing'])-1 ))
 
                     for player in game['playing']:
                         playerObj = ryver.get_user(username=player['name'])
@@ -802,7 +802,7 @@ async def main():
                         for index, card in enumerate(player['cards']): 
                             cardList += f"{str(index+1)}. {card} \n"
                         await send_message(
-                            f"**This is your current set of cards:**\n {cardList}",
+                            f"**This is your current set of cards:**\n *Send `!card <card number>` in the game chat to select a card.* \n\n {cardList}",
                             ryver.get_chat(id=playerObj.get_id())
                         )
 
@@ -840,7 +840,7 @@ async def main():
                         game['waitingForJoin'] = True
                     else:
                         await send_message(
-                            "Missing Arguments: Must add the number of rounds after command",
+                            "Missing Arguments: Must add the number of rounds after command. `!cah <number of rounds>`",
                             bot_chat
                         )
 
@@ -864,7 +864,7 @@ async def main():
                             )
 
                     if((not game['running']) and msg.text.lower().startswith("!start")):
-                        if(len(game['players']) >= 2):
+                        if(len(game['players']) >= 3):
                             game['waitingForJoin'] = False
                             for player in game['players']:
                                 whiteCards = []
@@ -891,7 +891,7 @@ async def main():
                             userInfo = next((player for player in game['players'] if player['name'] == user.get_username()), None)
                             playerInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
 
-                            if(userInfo):
+                            if(playerInfo):
                                 selectedCard = userInfo['cards'].pop(int(selected)-1)
                                 userInfo['cards'].append(random.choice(cah['white'])['text'])
 
@@ -952,8 +952,10 @@ async def main():
                                     'running': False,
                                     'waitingForJoin': False,
                                     'readCommands': False,
-                                    'selectionTime': False,
                                     'players': [],
+                                    'playing': [],
+                                    'roundsLeft': 2,
+                                    'selectionTime': False,
                                     'cardQueen': '' #username of card queen
                                 }
 
@@ -971,12 +973,14 @@ async def main():
 
                         elif(msg.text.lower().startswith("!end")):
                             game = {
-                            'running': False,
-                            'waitingForJoin': False,
-                            'readCommands': False,
-                            'selectionTime': False,
-                            'players': [],
-                            'cardQueen': '' #username of card queen
+                                'running': False,
+                                'waitingForJoin': False,
+                                'readCommands': False,
+                                'players': [],
+                                'playing': [],
+                                'roundsLeft': 2,
+                                'selectionTime': False,
+                                'cardQueen': '' #username of card queen
                             }
                             await send_message(
                                 f"@{user.get_username()} ended the game.",
