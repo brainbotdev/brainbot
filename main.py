@@ -779,16 +779,21 @@ async def main():
                 
                 #cards against humanity
                 async def gameStart():
+                    game['selectionTime'] = False
+
                     imgGen = ImageGenerator()
+                    global randomQ
                     randomQ = random.choice(cah['black'])['text']
                     imgGen.createImage(randomQ, "black.png")
 
                     fileCard = await ryver.upload_file("black", open("black.png", "rb"), "png")
 
-                    console.log(game)
+                    for player in game['players']:
+                        player['selectedCard'] = ''
+                    
                     game['playing'] = list(game['players']) 
-                    queen = game['playing'].pop(random.randint( 0,len(game['playing'])-1 ))
-                    console.log(game)
+
+                    queen = game['playing'].pop(random.randint( 0, len(game['playing'])-1 ))
 
                     for player in game['playing']:
                         playerObj = ryver.get_user(username=player['name'])
@@ -797,7 +802,7 @@ async def main():
                         for index, card in enumerate(player['cards']): 
                             cardList += f"{str(index+1)}. {card} \n"
                         await send_message(
-                            f"**This is your current set of cards:**\n {cardList}",
+                            f"**This is your current set of cards:**\n *Send `!card <card number>` in the game chat to select a card.* \n\n {cardList}",
                             ryver.get_chat(id=playerObj.get_id())
                         )
 
@@ -835,7 +840,7 @@ async def main():
                         game['waitingForJoin'] = True
                     else:
                         await send_message(
-                            "Missing Arguments: Must add the number of rounds after command",
+                            "Missing Arguments: Must add the number of rounds after command. `!cah <number of rounds>`",
                             bot_chat
                         )
 
@@ -883,9 +888,10 @@ async def main():
                         if(msg.text.lower().startswith("!card")):
                             selected = msg.text.lstrip("!card ").strip()
                             thisUser = ryver.get_user(jid=msg.from_jid)
-                            userInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
+                            userInfo = next((player for player in game['players'] if player['name'] == user.get_username()), None)
+                            playerInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
 
-                            if(userInfo):
+                            if(playerInfo):
                                 selectedCard = userInfo['cards'].pop(int(selected)-1)
                                 userInfo['cards'].append(random.choice(cah['white'])['text'])
 
@@ -897,14 +903,14 @@ async def main():
                                     f"@{user.get_username()} has selected a card!",
                                     bot_chat
                                 )
-                                userInfo['selectedCard'] = selectedCard
+                                playerInfo['selectedCard'] = selectedCard
 
                                 if(not next((player for player in game['playing'] if not player['selectedCard']), None)):
                                     allCards = ''
                                     for index, player in enumerate(game['playing']): 
                                         allCards += f"{index+1}. {player['selectedCard']} \n"
                                     await send_message(
-                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n {allCards}",
+                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n **{randomQ}** \n {allCards}",
                                         bot_chat
                                     )
                                     game['selectionTime'] = True
@@ -946,8 +952,10 @@ async def main():
                                     'running': False,
                                     'waitingForJoin': False,
                                     'readCommands': False,
-                                    'selectionTime': False,
                                     'players': [],
+                                    'playing': [],
+                                    'roundsLeft': 2,
+                                    'selectionTime': False,
                                     'cardQueen': '' #username of card queen
                                 }
 
@@ -965,12 +973,14 @@ async def main():
 
                         elif(msg.text.lower().startswith("!end")):
                             game = {
-                            'running': False,
-                            'waitingForJoin': False,
-                            'readCommands': False,
-                            'selectionTime': False,
-                            'players': [],
-                            'cardQueen': '' #username of card queen
+                                'running': False,
+                                'waitingForJoin': False,
+                                'readCommands': False,
+                                'players': [],
+                                'playing': [],
+                                'roundsLeft': 2,
+                                'selectionTime': False,
+                                'cardQueen': '' #username of card queen
                             }
                             await send_message(
                                 f"@{user.get_username()} ended the game.",
