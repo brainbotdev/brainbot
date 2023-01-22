@@ -2,8 +2,9 @@ import random
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from datetime import datetime, timedelta
-from os import getenv, system
+from os import getenv, system, path
 from random import choice
+import random
 from sys import executable
 from urllib.parse import quote
 
@@ -27,7 +28,18 @@ from utils import (
     handle_notification,
     remind_task,
     send_message,
+    ImageGenerator
 )
+from pyryver.util import retry_until_available
+import urllib.request
+import urllib
+import requests
+import urllib.request
+from bs4 import BeautifulSoup
+import re
+import random
+
+import json
 
 __version__ = "1.4.1"
 
@@ -45,7 +57,9 @@ topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
 repeat_cooldown = Cooldown(config.getint("cooldowns", "repeat", fallback=45))
 phon_cooldown = Cooldown(config.getint("cooldowns", "phon", fallback=45))
 poll_cooldown = Cooldown(config.getint("cooldowns", "poll", fallback=100))
-
+trivia_cooldown=Cooldown(config.getint("cooldowns", "trivia", fallback=30))
+define_cooldown = Cooldown(config.getint("cooldowns", "define", fallback=45))
+synonyms_cooldown = Cooldown(config.getint("cooldowns", "synonyms", fallback=45))
 # Load poll reactions
 poll_reactions = config.get(
     "misc",
@@ -57,6 +71,17 @@ math_parser = Parser()
 topic_engine = TopicGenerator()
 translator = Translator()
 
+cah = json.load(open('CAH.json'))[0]
+game = {
+    'running': False,
+    'waitingForJoin': False,
+    'readCommands': False,
+    'players': [],
+    'playing': [],
+    'roundsLeft': 2,
+    'selectionTime': False,
+    'cardQueen': '' #username of card queen
+}
 
 # Wrap in async function to use async context manager
 async def main():
@@ -65,12 +90,12 @@ async def main():
         getenv("RYVER_ORG"), getenv("RYVER_USER"), getenv("RYVER_PASS")
     ) as ryver:
         console.log(
-            f"Connected to {ryver.org} Ryver org as user {getenv('RYVER_USER')}"
+            f"Connected to {getenv('RYVER_ORG')} Ryver org as user {getenv('RYVER_USER')}"
         )
 
         # Save the bot chat to compare with all incoming messages
         await ryver.load_chats()
-        console.log(f"Loaded {ryver.org} chats")
+        console.log(f"Loaded {getenv('RYVER_ORG')} chats")
 
         bot_chat = ryver.get_chat(id=int(getenv("RYVER_CHAT")))
 
@@ -108,6 +133,7 @@ async def main():
             console.log("In live session")
 
             @session.on_chat
+
             async def _on_chat(msg):
                 # Stop if message wasn't sent to the bot chat
                 if msg.to_jid != bot_chat.get_jid():
@@ -288,8 +314,8 @@ async def main():
                     console.log(f"Giving {user.get_username()} a random emoticon.")
                     await send_message(choice(emoticons), bot_chat)
                 # Create Poll
-                elif msg.text.lower().startswith("!poll"):
-                    """
+                elif msg.text.lower()==("!poll"):
+                    await send_message(f"""
                     Command usage:  !poll [t=due_time;]<poll_title>;<option1>;<option2>...
                                     !poll [d=due_date;]<poll_title>;<option1>;<option2>...
                                     !poll [m=minutes;]<poll_title>;<option1>;<option2>...
@@ -307,7 +333,8 @@ async def main():
 
                     If due date/time is entered a task and a reminder will be created inside bot's personal
                     task board in order to make ryver take care of timers instead of the bot itself.
-                    """
+                    """,bot_chat)
+                elif msg.text.lower().startswith("!poll"):
                     if poll_cooldown.run(username=user.get_username()):
                         # Get potential arguments
                         inputs = [value.strip() for value in msg.text[6:].split(";")]
@@ -597,6 +624,8 @@ async def main():
                         f"![LaTeX](http://tex.z-dn.net/?f={quote(msg.text[7:])})",
                         bot_chat,
                     )
+
+
                 # Restart the bot
                 elif msg.text.lower().startswith("!restart"):
                     if user in bot_admins:
@@ -616,6 +645,439 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to shut down the bot"
                         )
+
+                file=open("TriviaQuestions.txt","r", encoding='utf-8')
+                record=file.readlines()
+                file.close()
+                QuestionsArray=[]
+                AnswersArray=[]
+                for value in record:
+                    question,answer=value.strip("\n").split(",")
+                    answer=answer.lower()
+                    QuestionsArray.append(question)
+                    AnswersArray.append(answer)
+                
+                
+                valid=True
+                if msg.text.lower().startswith("!trivia bypass"):
+                    if user in bot_admins:
+                        console.log(
+                            f"{user.get_username()} used the !trivia command [bold red](COOLDOWN BYPASS)"
+                        )
+
+                        trivia_cooldown.run(bypass=True)
+
+                        
+                        global Rinteger
+                        Rinteger=random.randint(0,len(QuestionsArray)-1)
+
+
+                        await send_message(QuestionsArray[Rinteger],bot_chat)
+
+                    else:
+                        console.log(
+                            f"[bold red]{user.get_username()} attempted to bypass the trivia cooldown"
+                        )
+                
+                elif msg.text.lower().startswith("!trivia"):
+                    if trivia_cooldown.run():
+                        
+                    
+                        #global Rinteger
+                        Rinteger=random.randint(0,len(QuestionsArray)-1)
+
+
+                        await send_message(QuestionsArray[Rinteger],bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+                elif msg.text.lower().startswith("!response") and valid==True:
+                    
+
+                    response=msg.text[10:]
+                    #response=response.replace(" ","")
+                    response=response.lower()
+
+                    if response == AnswersArray[Rinteger].lower():
+                        await send_message(f"Correct @{user.get_username()}! The answer was {AnswersArray[Rinteger]}",bot_chat)
+                    else:
+                        await send_message(f"Not quite @{user.get_username()}, try again.",bot_chat)
+
+                elif msg.text.lower().startswith("!answer"):
+                    await send_message(f"The answer is {AnswersArray[Rinteger]}, better luck next time.",bot_chat)
+                        
+                                           
+                if msg.text.lower()==("!define bypass"):
+                    if user in bot_admins:
+                        console.log(f"{user.get_username()} used the !define command [bold red](COOLDOWN BYPASS)")
+
+                        define_cooldown.run(bypass=True)
+                        word=msg.text.lower().lstrip("!define bypass")
+                        word= word.replace(' ', '')
+                        url = "https://www.merriam-webster.com/dictionary/"+ word +""
+                        r = requests.head(url)
+
+                        if r.status_code == 200:
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find("span",class_="dtText")
+                            output=soup1.get_text()
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            
+                            await send_message("No Results Found",bot_chat)
+                                
+                elif msg.text.lower().startswith ("!define"):
+                    if define_cooldown.run():
+
+                        word=msg.text.lower().lstrip("!define")
+                        word= word.replace(' ', '')
+                        url = "https://www.merriam-webster.com/dictionary/"+ word +""
+                        r = requests.head(url)
+
+                        if r.status_code == 200:
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find("span",class_="dtText")
+                            output=soup1.get_text()
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            
+                            await send_message("No Results Found",bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+ 
+ 
+                if msg.text.lower()==("!synonyms bypass"):
+                    if user in bot_admins:
+                        console.log(
+                            f"{user.get_username()} used the !synonyms command [bold red](COOLDOWN BYPASS)"
+                        )
+                        synonyms_cooldown.run(bypass=True)
+                        word=msg.text.lstrip("!synonyms bypass")
+                        word= word.replace(' ', '')
+
+
+                        url = "https://www.merriam-webster.com/thesaurus/"+ word +""
+                        r = requests.head(url)
+                           
+                        if r.status_code == 200:    
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find(class_="mw-list")
+                            text=soup1.get_text()
+                            output=text.strip("SYNONYMS")
+
+
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            await send_message("No Results Found",bot_chat)
+
+                        trivia_cooldown.run(bypass=True)
+                elif msg.text.lower().startswith ("!synonyms"):
+                    if synonyms_cooldown.run():
+
+                        word=msg.text.lstrip("!synonyms bypass")
+                        word= word.replace(' ', '')
+
+
+                        url = "https://www.merriam-webster.com/thesaurus/"+ word +""
+                        r = requests.head(url)
+                           
+                        if r.status_code == 200:    
+                            htmlfile = urllib.request.urlopen(url)
+                            soup = BeautifulSoup(htmlfile, 'lxml')
+
+                            soup1 = soup.find(class_="mw-list")
+                            text=soup1.get_text()
+                            output=text.strip("SYNONYMS")
+
+                            await send_message(str(output),bot_chat)
+                        else:
+                            await send_message("No Results Found",bot_chat)
+                    else:
+                        console.log("Cancelled due to cooldown")
+
+                        # Get the invoking message
+                        message = await retry_until_available(
+                            bot_chat.get_message,
+                            msg.message_id,
+                            timeout=5.0,
+                            retry_delay=0.5,
+                        )
+
+                        # React to show the command is on cooldown
+                        await message.react("timer_clock")
+
+                if msg.text.lower()=="!coinflip":
+                    flip=random.randint(0,1)
+                    if flip==0:
+                        await send_message("Tails",bot_chat)
+
+                    elif flip==1:
+                        await send_message("Heads",bot_chat)
+                if msg.text.lower().startswith("!rickroll"):
+                    msg.text=msg.text.lstrip("!rickroll ")
+                    if "http" in msg.text:
+                       
+                        url= msg.text
+                       
+                        headers = {'User-Agent': '<yourUserAgent>'}
+                        #Keywords
+                        keywords = ['Rick','Astley','Rick Astley - Never Gonna Give You Up (Video)','Official Rick Astley','Never gonna give you up','Never gonna let you down','Never gonna run around and desert you','Never gonna make you cry','Never gonna say goodbye','Never gonna tell a lie and hurt you','Stick Bugged','Get Stick Bugged Lol']
+                        response = requests.get(url, headers=headers)
+
+                        found_keywords = 0
+                        #checks to see if
+                        for el in keywords:
+                            if el.lower() in str(response.content).lower():
+                                await send_message(f"Looks like a troll link!",bot_chat)
+                                break
+                        for el in keywords:
+                            if el.lower() in str(response.content).lower():
+                                found_keywords = found_keywords+1
+
+                        if found_keywords == 0:
+                            await send_message(f"You can be sure that this isn't a troll link!",bot_chat)
+                
+                #cards against humanity
+                async def gameStart():
+                    game['selectionTime'] = False
+
+                    imgGen = ImageGenerator()
+                    global randomQ
+                    randomQ = random.choice(cah['black'])['text']
+                    imgGen.createImage(randomQ, "black.png")
+
+                    fileCard = await ryver.upload_file("black", open("black.png", "rb"), "png")
+
+                    for player in game['players']:
+                        player['selectedCard'] = ''
+                    
+                    game['playing'] = list(game['players']) 
+
+                    queen = game['playing'].pop(random.randint( 0, len(game['playing'])-1 ))
+
+                    for player in game['playing']:
+                        playerObj = ryver.get_user(username=player['name'])
+
+                        cardList = ''
+                        for index, card in enumerate(player['cards']): 
+                            cardList += f"{str(index+1)}. {card} \n"
+                        await send_message(
+                            f"**This is your current set of cards:**\n *Send `!card <card number>` in the game chat to select a card.* \n\n {cardList}",
+                            ryver.get_chat(id=playerObj.get_id())
+                        )
+
+                    await send_message(
+                        f"![{randomQ}]({fileCard.get_content_url()})",
+                        bot_chat
+                    )
+
+                    game['cardQueen'] = queen
+                    await send_message(
+                        f"@{queen['name']} is the judge for this round.",
+                        bot_chat
+                    )
+                    game['running'] = True
+                    game['roundsLeft'] -= 1
+                
+                if msg.text.lower().startswith("!cah"):
+                    roundCount = msg.text.lstrip("!cah ").strip()
+                    if(roundCount):
+                        await send_message(
+                            f"{user.get_username()} is starting a game of Cards Against Humanity, send `!join` in this chat to join!",
+                            bot_chat
+                        )
+
+                        global game
+                        game['players'].append({
+                            'name': user.get_username(),
+                            'points': 0,
+                            'cards': [],
+                            'selectedCard': ''
+                        })
+                        
+                        game['roundsLeft'] = int(roundCount)
+                        game['readCommands'] = True
+                        game['waitingForJoin'] = True
+                    else:
+                        await send_message(
+                            "Missing Arguments: Must add the number of rounds after command. `!cah <number of rounds>`",
+                            bot_chat
+                        )
+
+                if(game['readCommands']):
+                    if(game['waitingForJoin'] and msg.text.lower().startswith("!join")):
+                        if(next((player for player in game['players'] if player['name'] == user.get_username()), None)):
+                            await send_message(
+                                f"@{user.get_username()} You are in the game already.",
+                                bot_chat
+                            )
+                        else:
+                            game['players'].append({
+                                'name': user.get_username(),
+                                'points': 0,
+                                'cards': [],
+                                'selectedCard': ''
+                            })
+                            await send_message(
+                                f"Welcome to the game @{user.get_username()}!",
+                                bot_chat
+                            )
+
+                    if((not game['running']) and msg.text.lower().startswith("!start")):
+                        if(len(game['players']) >= 3):
+                            game['waitingForJoin'] = False
+                            for player in game['players']:
+                                whiteCards = []
+                                
+                                #distribute starting cards
+                                for a in range(10):
+                                    whiteCards.append(random.choice(cah['white'])['text'])
+                                player['cards'] = whiteCards
+
+                            await gameStart()
+
+
+                        else:
+                            await send_message(
+                                "Not enough players",
+                                bot_chat
+                            )
+                    else:
+                    #in-game commands here
+
+                        if(msg.text.lower().startswith("!card")):
+                            selected = msg.text.lstrip("!card ").strip()
+                            thisUser = ryver.get_user(jid=msg.from_jid)
+                            userInfo = next((player for player in game['players'] if player['name'] == user.get_username()), None)
+                            playerInfo = next((player for player in game['playing'] if player['name'] == user.get_username()), None)
+
+                            if(playerInfo):
+                                selectedCard = userInfo['cards'].pop(int(selected)-1)
+                                userInfo['cards'].append(random.choice(cah['white'])['text'])
+
+                                await send_message(
+                                    f"**You Selected the card:** {selectedCard}",
+                                    ryver.get_chat(id=thisUser.get_id())
+                                )
+                                await send_message(
+                                    f"@{user.get_username()} has selected a card!",
+                                    bot_chat
+                                )
+                                playerInfo['selectedCard'] = selectedCard
+
+                                if(not next((player for player in game['playing'] if not player['selectedCard']), None)):
+                                    allCards = ''
+                                    for index, player in enumerate(game['playing']): 
+                                        allCards += f"{index+1}. {player['selectedCard']} \n"
+                                    await send_message(
+                                        f"@{game['cardQueen']['name']}, Pick a winning card: (!pick <number>) \n **{randomQ}** \n {allCards}",
+                                        bot_chat
+                                    )
+                                    game['selectionTime'] = True
+                            else:
+                                await send_message(
+                                    "You are not in this game",
+                                    ryver.get_chat(id=thisUser.get_id())
+                                )
+                                
+
+                        elif(msg.text.lower().startswith("!pick") and game['selectionTime']):
+                            selection = int(msg.text.lstrip("!pick ").strip())
+                            winner = game['playing'][selection-1]
+                            winner['points'] += 1
+                            await send_message(
+                                f"@{winner['name']} won the round!",
+                                bot_chat
+                            )
+                            game['running'] = False
+
+                            userScore = ''
+                            for player in game['players']:
+                                userScore += f"@{player['name']} : {str(player['points'])} \n"
+
+                            if(game['roundsLeft'] > 0):
+                                await send_message(
+                                    f"**Current Points:** \n {userScore} ",
+                                    bot_chat
+                                )
+                                await gameStart()
+                            else:
+                                #rounds finished
+                
+                                await send_message(
+                                    f"**The game has ended.** \n Scores: \n {userScore} ",
+                                    bot_chat
+                                )
+                                game = {
+                                    'running': False,
+                                    'waitingForJoin': False,
+                                    'readCommands': False,
+                                    'players': [],
+                                    'playing': [],
+                                    'roundsLeft': 2,
+                                    'selectionTime': False,
+                                    'cardQueen': '' #username of card queen
+                                }
+
+
+
+                        elif(msg.text.lower().startswith("!scores")):
+                            userScore = ''
+                            for player in game['players']:
+                                userScore += f"{player['name']} : {str(player['points'])} \n"
+                            await send_message(
+                                f"**Leaderboard:** \n \n {userScore}",
+                                bot_chat
+                            )
+                        
+
+                        elif(msg.text.lower().startswith("!end")):
+                            game = {
+                                'running': False,
+                                'waitingForJoin': False,
+                                'readCommands': False,
+                                'players': [],
+                                'playing': [],
+                                'roundsLeft': 2,
+                                'selectionTime': False,
+                                'cardQueen': '' #username of card queen
+                            }
+                            await send_message(
+                                f"@{user.get_username()} ended the game.",
+                                bot_chat
+                            )
 
             @session.on_event(RyverWS.EVENT_ALL)
             async def _on_event(event: WSEventData):
