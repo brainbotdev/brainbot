@@ -2,7 +2,7 @@ gitpython==3.1.11
 googletrans==3.0.0
 phonetic-alphabet==0.1.0
 py-expression-eval==0.3.10
-pyryver==0.3.2.post1
+pyryver==0.4.0.post1
 python-dotenv==0.15.0
 pytz==2022.1
 rich==9.5.1
