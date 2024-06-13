@@ -1,3 +1,4 @@
+import random
 from asyncio import get_event_loop
 from configparser import ConfigParser
 from datetime import datetime, timedelta
@@ -48,6 +49,8 @@ load_dotenv(
 
 config = ConfigParser()
 config.read("brainbot.ini")
+
+max_dice_limit = config.getint("limits", "max_dice", fallback=99)
 
 tell_me_to_cooldown = Cooldown(config.getint("cooldowns", "tell_me_to", fallback=200))
 topic_cooldown = Cooldown(config.getint("cooldowns", "topic", fallback=100))
@@ -157,7 +160,7 @@ async def main():
                         console.log(
                             f"[bold red]{user.get_username()} attempted to bypass the topic cooldown"
                         )
-                
+
                 # Get a conversation starter
                 elif msg.text.lower().startswith("!topic"):
                     console.log(f"{user.get_username()} used the !topic command")
@@ -188,11 +191,11 @@ async def main():
                         await send_message(f"@{user.get_username()}: {to_do}", bot_chat)
                     else:
                         console.log("Cancelled due to cooldown")
-                
+
                 # Repeat after the user
                 elif msg.text.lower().startswith("!repeat"):
                     msg_text = msg.text[8:]
-                    updatedmsg_text = msg_text.replace("!","\!")
+                    updatedmsg_text = msg_text.replace("!", "\!")
                     console.log(f"Repeating {user.get_username()}")
                     if repeat_cooldown.run(username=user.get_username()):
                         await send_message(
@@ -513,6 +516,95 @@ async def main():
                         "Check out [my wiki](https://github.com/brainbotdev/brainbot/wiki) to learn what commands I understand.",
                         bot_chat,
                     )
+                # Roll a custom dice
+                elif msg.text.lower().startswith("!roll"):
+                    """
+                    Command usage:  !roll <number>          : Returns same number
+                                    !roll d<faces>          : Rolls a single <faces>-faced dice
+                                    !roll <dice>d<faces>    : Rolls the <dice> amount of <faces>-faced dice
+
+                    Maximum dice and faces are limited by setting limits->max_dice (default: 99)
+                    """
+                    # Get potential arguments
+                    inputs = [value.strip() for value in msg.text[6:].split("d")]
+
+                    # Remove any empty arguments
+                    while "" in inputs:
+                        inputs.remove("")
+
+                    if len(inputs) < 1 or len(inputs) > 2:
+                        await send_message(
+                            "Please enter a valid dice roll. You can try using: `<dice_number>d<dice_faces>`",
+                            bot_chat,
+                        )
+                    else:
+                        try:
+                            if any(int(i) > max_dice_limit for i in inputs):
+                                str = "Dice values cannot be greater than the setting: `{0}`".format(
+                                    max_dice_limit
+                                )
+                                await send_message(
+                                    str,
+                                    bot_chat,
+                                )
+                            elif any(int(i) <= 0 for i in inputs):
+                                await send_message(
+                                    "Dice values cannot be less than 1",
+                                    bot_chat,
+                                )
+                            else:
+                                roll = 0
+                                str = ""
+                                if len(inputs) == 1:
+                                    # Casting "!roll <number>" will return same <number>
+                                    if "d" not in msg.text[6:]:
+                                        roll = int(inputs[0])
+                                        str = "Rolled `{0}`: `{1}`".format(
+                                            msg.text[6:], roll
+                                        )
+                                        # Print rolled number
+                                        await send_message(
+                                            str,
+                                            bot_chat,
+                                        )
+                                    else:
+                                        # Calling "!roll d<number>" will roll a <number>-faced dice
+                                        if msg.text[6:].startswith("d"):
+                                            roll = random.randint(1, int(inputs[0]))
+                                            str = "Rolled `{0}`: `{1}`".format(
+                                                msg.text[6:], roll
+                                            )
+                                            # Print rolled number
+                                            await send_message(
+                                                str,
+                                                bot_chat,
+                                            )
+                                        else:
+                                            await send_message(
+                                                "Please enter a valid dice roll. You can try using: `<dice_number>d<dice_faces>`",
+                                                bot_chat,
+                                            )
+                                else:
+                                    # Calling "!roll <number1>d<number2>" will roll <number1> dices of <number2> faces each
+                                    str = "Rolled `{0}`: `".format(msg.text[6:])
+                                    for i in range(0, int(inputs[0])):
+                                        current = random.randint(1, int(inputs[1]))
+                                        roll += current
+                                        str += "{0}".format(current)
+                                        if i != int(inputs[0]) - 1:
+                                            str += " + "
+                                    str += " = {0}`".format(roll)
+
+                                    # Print rolled number
+                                    await send_message(
+                                        str,
+                                        bot_chat,
+                                    )
+                        except ValueError:
+                            await send_message(
+                                "Please enter a valid dice roll. You can try using: `<dice_number>d<dice_faces>`",
+                                bot_chat,
+                            )
                 # Pull the latest changes from GitHub
                 elif msg.text.lower().startswith("!pull"):
                     if user in bot_admins:
